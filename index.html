@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lucerna — Passe ton QCM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    box-sizing:border-box;
+    --ink:#16211D; --ink-soft:#4A5850; --ink-faint:#7C887F;
+    --paper:#F1F3EE; --surface:#FFFFFF; --surface-soft:#E7EAE2;
+    --border:rgba(22,33,29,0.14); --border-strong:rgba(22,33,29,0.24);
+    --accent:#2F6F5E; --accent-ink:#F4FBF7; --accent-soft:#DCEBE4; --accent-strong:#1F5445;
+    --gold:#C98A2B; --gold-soft:#F4E7CC; --gold-ink:#3A2A0C;
+    --success:#2F7A54; --success-soft:#DBEFE1;
+    --danger:#B24632; --danger-soft:#F6DEDA;
+    --shadow: 0 1px 2px rgba(22,33,29,0.06), 0 8px 24px -12px rgba(22,33,29,0.18);
+    --radius-s:10px; --radius-m:16px; --radius-l:24px;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#EAEFE9; --ink-soft:#AEBBB2; --ink-faint:#7C8B81;
+      --paper:#0E1713; --surface:#16211C; --surface-soft:#1D2A23;
+      --border:rgba(234,239,233,0.12); --border-strong:rgba(234,239,233,0.22);
+      --accent:#57B492; --accent-ink:#082017; --accent-soft:#1D362C; --accent-strong:#79CBAC;
+      --gold:#E3B15C; --gold-soft:#3A2E14; --gold-ink:#F8E7C4;
+      --success:#5FBE8C; --success-soft:#183A28;
+      --danger:#E48972; --danger-soft:#3B2019;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#EAEFE9; --ink-soft:#AEBBB2; --ink-faint:#7C8B81;
+    --paper:#0E1713; --surface:#16211C; --surface-soft:#1D2A23;
+    --border:rgba(234,239,233,0.12); --border-strong:rgba(234,239,233,0.22);
+    --accent:#57B492; --accent-ink:#082017; --accent-soft:#1D362C; --accent-strong:#79CBAC;
+    --gold:#E3B15C; --gold-soft:#3A2E14; --gold-ink:#F8E7C4;
+    --success:#5FBE8C; --success-soft:#183A28;
+    --danger:#E48972; --danger-soft:#3B2019;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Manrope',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    transition:background .25s ease, color .25s ease;
+  }
+  h1,h2,h3,.display{ font-family:'Fraunces',Georgia,serif; letter-spacing:-0.01em; }
+  ::selection{ background:var(--accent-soft); color:var(--accent-strong); }
+  *:focus-visible{ outline:2.5px solid var(--accent); outline-offset:2px; border-radius:6px; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; } }
+
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 20px; }
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-l); box-shadow:var(--shadow); }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; font-size:0.95rem; border-radius:999px; padding:12px 22px; cursor:pointer; border:1px solid transparent; transition:transform .12s ease, background .15s ease, border-color .15s ease, opacity .15s ease; white-space:nowrap; }
+  .btn:active{ transform:scale(0.97); }
+  .btn:disabled{ opacity:0.45; cursor:not-allowed; transform:none; }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-primary:hover:not(:disabled){ background:var(--accent-strong); }
+  .btn-ghost{ background:transparent; color:var(--ink); border-color:var(--border-strong); }
+  .btn-ghost:hover:not(:disabled){ background:var(--surface-soft); }
+  .btn-soft{ background:var(--surface-soft); color:var(--ink); }
+  .btn-soft:hover:not(:disabled){ background:var(--border); }
+  .btn-danger{ background:var(--danger); color:#fff; }
+  .btn-danger:hover:not(:disabled){ opacity:0.9; }
+  .btn-sm{ padding:8px 14px; font-size:0.85rem; }
+  .icon{ width:1em; height:1em; flex:none; }
+
+  .topbar{ position:sticky; top:0; z-index:30; backdrop-filter:blur(10px); background:color-mix(in srgb, var(--paper) 88%, transparent); border-bottom:1px solid var(--border); padding-top:env(safe-area-inset-top,0px); }
+
+  .drop{ border:2px dashed var(--border-strong); border-radius:var(--radius-l); background:var(--surface); transition:border-color .15s ease, background .15s ease; }
+  .drop.drag{ border-color:var(--accent); background:var(--accent-soft); }
+
+  .progressbar{ height:8px; border-radius:999px; background:var(--surface-soft); overflow:hidden; }
+  .progressbar > div{ height:100%; background:var(--accent); border-radius:999px; transition:width .3s ease; }
+
+  .choice{ display:flex; align-items:flex-start; gap:14px; width:100%; text-align:left; padding:16px 18px; border-radius:var(--radius-m); border:1.5px solid var(--border); background:var(--surface); cursor:pointer; transition:border-color .12s ease, background .12s ease, transform .08s ease; font-size:1rem; color:var(--ink); font-family:inherit; }
+  .choice:hover{ border-color:var(--border-strong); background:var(--surface-soft); }
+  .choice[aria-checked="true"]{ border-color:var(--accent); background:var(--accent-soft); }
+  .choice-mark{ flex:none; width:24px; height:24px; border-radius:7px; border:1.5px solid var(--border-strong); display:flex; align-items:center; justify-content:center; margin-top:1px; color:transparent; font-size:14px; font-weight:800; background:var(--surface); }
+  .choice[aria-checked="true"] .choice-mark{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .choice.radio .choice-mark{ border-radius:999px; }
+
+  .qbadge{ position:relative; width:38px; height:38px; border-radius:11px; border:1.5px solid var(--border-strong); background:var(--surface); color:var(--ink); font-weight:700; font-size:0.85rem; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .1s ease, border-color .15s ease, background .15s ease; }
+  .qbadge:hover{ transform:translateY(-1px); }
+  .qbadge.answered{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent-strong); }
+  .qbadge.current{ border-color:var(--ink); box-shadow:0 0 0 3px var(--surface-soft); }
+  .qbadge.flag::after{ content:"⚑"; position:absolute; top:-8px; right:-8px; font-size:12px; color:var(--gold); background:var(--surface); border-radius:999px; line-height:1; padding:1px; }
+  .qbadge .dot{ position:absolute; bottom:3px; width:5px; height:5px; border-radius:999px; background:var(--ink-faint); }
+
+  .status-pill{ display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:700; padding:4px 11px; border-radius:999px; }
+  .pill-correct{ background:var(--success-soft); color:var(--success); }
+  .pill-incorrect{ background:var(--danger-soft); color:var(--danger); }
+  .pill-unanswered{ background:var(--surface-soft); color:var(--ink-faint); }
+  .pill-flag{ background:var(--gold-soft); color:var(--gold-ink); }
+
+  .modal-back{ position:fixed; inset:0; background:rgba(10,14,12,0.55); backdrop-filter:blur(2px); display:flex; align-items:center; justify-content:center; padding:20px; z-index:100; }
+  .modal{ background:var(--surface); border-radius:var(--radius-l); border:1px solid var(--border); max-width:460px; width:100%; padding:28px; box-shadow:var(--shadow); }
+
+  .fade-in{ animation:fadeIn .28s ease both; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+
+  .ring-track{ stroke:var(--surface-soft); }
+  .ring-progress{ stroke:var(--accent); transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1); }
+
+  input[type=file]{ display:none; }
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:99px; }
+
+  .scrollx{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  @media (max-width: 720px){
+    .hide-mobile{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------------------------------------------------
+     DEMO QUIZ
+  --------------------------------------------------------- */
+  var DEMO_QUIZ = {
+    title: "Culture générale — Bases",
+    description: "Un petit échantillon pour découvrir Lucerna.",
+    questions: [
+      { id:1, question:"Quelle est la capitale de la France ?",
+        choices:[{id:"A",text:"Lyon"},{id:"B",text:"Paris"},{id:"C",text:"Marseille"},{id:"D",text:"Nice"}],
+        correctAnswers:["B"], explanation:"Paris est la capitale de la France depuis le Xe siècle." },
+      { id:2, question:"Combien de continents compte-t-on habituellement ?",
+        choices:[{id:"A",text:"5"},{id:"B",text:"6"},{id:"C",text:"7"},{id:"D",text:"4"}],
+        correctAnswers:["C"], explanation:"On distingue généralement 7 continents : Afrique, Amérique du Nord, Amérique du Sud, Antarctique, Asie, Europe, Océanie." },
+      { id:3, question:"Lesquels de ces éléments sont des langages de programmation ? (plusieurs réponses)",
+        choices:[{id:"A",text:"Python"},{id:"B",text:"HTML"},{id:"C",text:"JavaScript"},{id:"D",text:"Photoshop"}],
+        correctAnswers:["A","C"], explanation:"Python et JavaScript sont des langages de programmation. HTML est un langage de balisage, Photoshop un logiciel." },
+      { id:4, question:"Quel océan est le plus vaste ?",
+        choices:[{id:"A",text:"Atlantique"},{id:"B",text:"Indien"},{id:"C",text:"Arctique"},{id:"D",text:"Pacifique"}],
+        correctAnswers:["D"], explanation:"L'océan Pacifique couvre environ un tiers de la surface du globe." },
+      { id:5, question:"En quelle année a eu lieu la première mise en orbite d'un satellite artificiel ?",
+        choices:[{id:"A",text:"1957"},{id:"B",text:"1969"},{id:"C",text:"1945"},{id:"D",text:"1980"}],
+        correctAnswers:["A"], explanation:"Spoutnik 1 a été lancé par l'URSS le 4 octobre 1957." }
+    ]
+  };
+
+  /* ---------------------------------------------------------
+     STATE
+  --------------------------------------------------------- */
+  var STORAGE_KEY = "lucerna:quiz-session:v1";
+  var THEME_KEY = "lucerna:theme";
+
+  var state = {
+    screen: "home",           // home | quiz | review | results
+    quiz: null,
+    current: 0,
+    answers: {},               // qid -> array of choice ids (as strings)
+    flags: {},                 // qid -> bool
+    visited: {},                // qid -> bool
+    startedAt: null,
+    submittedAt: null,
+    correctionFilter: "all",   // all | incorrect
+    error: null,
+    importPreview: null,       // {quiz} pending confirmation on home
+    showConfirmSubmit: false,
+    showJsonHelp: false,
+    hasSavedSession: false,
+    navOpen: false
+  };
+
+  function qid(q){ return String(q.id); }
+
+  function save(){
+    if(!state.quiz){ return; }
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        quiz: state.quiz, current: state.current, answers: state.answers,
+        flags: state.flags, visited: state.visited, startedAt: state.startedAt,
+        submittedAt: state.submittedAt, screen: state.screen
+      }));
+    }catch(e){ /* storage full or unavailable: fail silently */ }
+  }
+
+  function loadSavedSession(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+
+  function clearSaved(){
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+  }
+
+  function applyTheme(){
+    try{
+      var t = localStorage.getItem(THEME_KEY);
+      if(t === "light" || t === "dark"){ document.documentElement.setAttribute("data-theme", t); }
+    }catch(e){}
+  }
+  function toggleTheme(){
+    var cur = document.documentElement.getAttribute("data-theme");
+    var isDark;
+    if(cur){ isDark = cur === "dark"; }
+    else { isDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches; }
+    var next = isDark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
+  }
+
+  /* ---------------------------------------------------------
+     VALIDATION
+  --------------------------------------------------------- */
+  function validateQuiz(data){
+    var errors = [];
+    if(!data || typeof data !== "object" || Array.isArray(data)){
+      return ["Le fichier ne contient pas un objet JSON valide."];
+    }
+    if(!Array.isArray(data.questions) || data.questions.length === 0){
+      errors.push("Le champ \"questions\" doit être une liste contenant au moins une question.");
+      return errors;
+    }
+    data.questions.forEach(function(q, i){
+      var label = "Question " + (i+1);
+      if(q.id === undefined || q.id === null || q.id === ""){ errors.push(label + " : identifiant (\"id\") manquant."); }
+      if(!q.question || typeof q.question !== "string"){ errors.push(label + " : énoncé (\"question\") manquant ou invalide."); }
+      if(!Array.isArray(q.choices) || q.choices.length < 2){
+        errors.push(label + " : au moins deux choix (\"choices\") sont requis.");
+      } else {
+        var ids = [];
+        q.choices.forEach(function(c, ci){
+          if(c === null || typeof c !== "object" || c.id === undefined || c.id === null || !c.text){
+            errors.push(label + " : le choix " + (ci+1) + " est mal formé (id/text requis).");
+          } else { ids.push(String(c.id)); }
+        });
+        if(!Array.isArray(q.correctAnswers) || q.correctAnswers.length === 0){
+          errors.push(label + " : \"correctAnswers\" doit lister au moins une bonne réponse.");
+        } else {
+          q.correctAnswers.forEach(function(a){
+            if(ids.indexOf(String(a)) === -1){ errors.push(label + " : la réponse correcte \"" + a + "\" ne correspond à aucun choix."); }
+          });
+        }
+      }
+    });
+    return errors;
+  }
+
+  function normalizeQuiz(data){
+    return {
+      title: data.title || "QCM sans titre",
+      description: data.description || "",
+      questions: data.questions.map(function(q){
+        return {
+          id: q.id, question: q.question, image: q.image || null,
+          category: q.category || null, difficulty: q.difficulty || null,
+          choices: q.choices.map(function(c){ return { id: String(c.id), text: c.text }; }),
+          correctAnswers: q.correctAnswers.map(String),
+          explanation: q.explanation || null
+        };
+      })
+    };
+  }
+
+  /* ---------------------------------------------------------
+     DERIVED HELPERS
+  --------------------------------------------------------- */
+  function questions(){ return state.quiz ? state.quiz.questions : []; }
+  function totalQ(){ return questions().length; }
+  function currentQ(){ return questions()[state.current]; }
+  function isAnswered(q){ var a = state.answers[qid(q)]; return !!a && a.length > 0; }
+  function isFlagged(q){ return !!state.flags[qid(q)]; }
+  function isMulti(q){ return q.correctAnswers.length > 1; }
+  function counts(){
+    var qs = questions(), answered=0, flagged=0;
+    qs.forEach(function(q){ if(isAnswered(q)) answered++; if(isFlagged(q)) flagged++; });
+    return { total: qs.length, answered: answered, unanswered: qs.length-answered, flagged: flagged };
+  }
+  function isCorrectAnswer(q){
+    var sel = state.answers[qid(q)] || [];
+    if(sel.length === 0) return false;
+    var correct = q.correctAnswers.slice().sort().join("|");
+    var selSorted = sel.slice().sort().join("|");
+    return correct === selSorted;
+  }
+  function computeResults(){
+    var qs = questions(); var correct=0, incorrect=0, unanswered=0;
+    qs.forEach(function(q){
+      if(!isAnswered(q)){ unanswered++; }
+      else if(isCorrectAnswer(q)){ correct++; }
+      else { incorrect++; }
+    });
+    var total = qs.length;
+    var pct = total ? Math.round((correct/total)*100) : 0;
+    return { correct: correct, incorrect: incorrect, unanswered: unanswered, total: total, pct: pct };
+  }
+
+  /* ---------------------------------------------------------
+     ACTIONS
+  --------------------------------------------------------- */
+  function esc(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function startQuiz(quiz){
+    state.quiz = quiz; state.current = 0; state.answers = {}; state.flags = {};
+    state.visited = {}; state.startedAt = Date.now(); state.submittedAt = null;
+    state.screen = "quiz"; state.importPreview = null; state.error = null;
+    var first = quiz.questions[0]; if(first) state.visited[qid(first)] = true;
+    save(); render();
+  }
+
+  function resumeSession(saved){
+    state.quiz = saved.quiz; state.current = saved.current || 0;
+    state.answers = saved.answers || {}; state.flags = saved.flags || {};
+    state.visited = saved.visited || {}; state.startedAt = saved.startedAt || Date.now();
+    state.submittedAt = saved.submittedAt || null;
+    state.screen = saved.screen === "results" ? "results" : "quiz";
+    render();
+  }
+
+  function handleFile(file){
+    if(!file){ return; }
+    if(!/\.json$/i.test(file.name) && file.type !== "application/json"){
+      state.error = "Ce fichier ne semble pas être un fichier .json. Merci de sélectionner un export JSON de QCM.";
+      render(); return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var data;
+      try{ data = JSON.parse(e.target.result); }
+      catch(err){ state.error = "Le fichier n'est pas un JSON valide (" + err.message + ")."; render(); return; }
+      var errors = validateQuiz(data);
+      if(errors.length){
+        state.error = errors;
+        render(); return;
+      }
+      state.error = null;
+      state.importPreview = normalizeQuiz(data);
+      render();
+    };
+    reader.onerror = function(){ state.error = "Impossible de lire ce fichier."; render(); };
+    reader.readAsText(file);
+  }
+
+  function selectChoice(q, choiceId){
+    var key = qid(q);
+    var cur = state.answers[key] || [];
+    if(isMulti(q)){
+      var idx = cur.indexOf(choiceId);
+      if(idx === -1){ cur = cur.concat([choiceId]); } else { cur = cur.slice(0,idx).concat(cur.slice(idx+1)); }
+    } else {
+      cur = [choiceId];
+    }
+    state.answers[key] = cur;
+    save(); render();
+  }
+
+  function goTo(index){
+    if(index < 0 || index >= totalQ()) return;
+    state.current = index;
+    var q = currentQ(); if(q) state.visited[qid(q)] = true;
+    state.navOpen = false;
+    save(); render();
+    var main = document.getElementById("question-card");
+    if(main) main.scrollIntoView({block:"start", behavior:"smooth"});
+  }
+
+  function toggleFlagCurrent(){
+    var q = currentQ(); if(!q) return;
+    var key = qid(q);
+    state.flags[key] = !state.flags[key];
+    save(); render();
+  }
+
+  function goReview(){ state.screen = "review"; save(); render(); window.scrollTo({top:0,behavior:"smooth"}); }
+  function backToQuiz(){ state.screen = "quiz"; save(); render(); }
+
+  function requestSubmit(){
+    var c = counts();
+    if(c.unanswered > 0){ state.showConfirmSubmit = true; render(); }
+    else { doSubmit(); }
+  }
+  function doSubmit(){
+    state.showConfirmSubmit = false;
+    state.submittedAt = Date.now();
+    state.screen = "results";
+    state.correctionFilter = "all";
+    save(); render();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  function restart(){
+    state.quiz = null; state.current = 0; state.answers = {}; state.flags = {};
+    state.visited = {}; state.startedAt = null; state.submittedAt = null;
+    state.screen = "home"; state.importPreview = null; state.error = null;
+    clearSaved(); render();
+  }
+
+  function retakeSameQuiz(){
+    var q = state.quiz; if(!q) return;
+    startQuiz(q);
+  }
+
+  /* ---------------------------------------------------------
+     RENDER: SHARED PIECES
+  --------------------------------------------------------- */
+  function sunMoonBtn(){
+    return '<button class="btn btn-ghost btn-sm" data-action="toggle-theme" aria-label="Changer de thème clair/sombre" title="Changer de thème">' +
+      '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1.5M12 19.5V21M4.9 4.9l1.1 1.1M18 18l1.1 1.1M3 12h1.5M19.5 12H21M4.9 19.1l1.1-1.1M18 6l1.1-1.1" stroke-linecap="round"/><circle cx="12" cy="12" r="4.2"/></svg>' +
+      '</button>';
+  }
+
+  function logo(size){
+    size = size || 22;
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M12 2.5C8.5 2.5 6.5 5 6.5 8c0 2.2 1.1 3.6 2.1 4.8.7.8 1.1 1.4 1.1 2.4h4.6c0-1 .4-1.6 1.1-2.4 1-1.2 2.1-2.6 2.1-4.8 0-3-2-5.5-5.5-5.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>' +
+      '<path d="M9.7 18.2h4.6M10.4 21h3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  }
+
+  function topbar(rightExtra){
+    return '<div class="topbar"><div class="wrap" style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;">' +
+      '<div style="display:flex;align-items:center;gap:9px;color:var(--accent);">' + logo(24) +
+      '<span class="display" style="font-weight:600;font-size:1.18rem;color:var(--ink);">Lucerna</span></div>' +
+      '<div style="display:flex;align-items:center;gap:10px;">' + (rightExtra||'') + sunMoonBtn() + '</div>' +
+      '</div></div>';
+  }
+
+  function errorBanner(){
+    if(!state.error) return "";
+    var items = Array.isArray(state.error) ? state.error : [state.error];
+    var list = items.length > 1
+      ? '<ul style="margin:8px 0 0;padding-left:18px;">' + items.map(function(m){ return '<li>'+esc(m)+'</li>'; }).join("") + '</ul>'
+      : '<div style="margin-top:2px;">'+esc(items[0])+'</div>';
+    return '<div class="fade-in" role="alert" style="background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius-m);padding:14px 16px;margin-top:18px;">' +
+      '<div style="font-weight:800;display:flex;align-items:center;gap:8px;">' +
+      '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>' +
+      'Le fichier n\'a pas pu être chargé</div>' + list + '</div>';
+  }
+
+  /* ---------------------------------------------------------
+     RENDER: HOME
+  --------------------------------------------------------- */
+  function renderHome(){
+    var saved = state.hasSavedSession ? loadSavedSession() : null;
+    var resumeBlock = "";
+    if(saved && saved.quiz){
+      var sc = { total: saved.quiz.questions.length,
+        answered: Object.keys(saved.answers||{}).filter(function(k){ return (saved.answers[k]||[]).length>0; }).length };
+      resumeBlock = '<div class="card fade-in" style="padding:20px 22px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">' +
+        '<div style="flex:1;min-width:220px;">' +
+        '<div style="font-weight:800;">Reprendre « ' + esc(saved.quiz.title) + ' »</div>' +
+        '<div style="color:var(--ink-soft);font-size:0.92rem;margin-top:2px;">' + sc.answered + ' / ' + sc.total + ' questions déjà répondues.</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:10px;">' +
+        '<button class="btn btn-primary btn-sm" data-action="resume">Reprendre</button>' +
+        '<button class="btn btn-ghost btn-sm" data-action="dismiss-resume">Ignorer</button>' +
+        '</div></div>';
+    }
+
+    var preview = "";
+    if(state.importPreview){
+      var p = state.importPreview;
+      preview = '<div class="card fade-in" style="padding:26px;margin-top:18px;">' +
+        '<div class="status-pill pill-correct" style="margin-bottom:12px;">' +
+        '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg> Fichier valide</div>' +
+        '<h3 class="display" style="font-size:1.4rem;margin:0 0 6px;">' + esc(p.title) + '</h3>' +
+        (p.description ? '<p style="color:var(--ink-soft);margin:0 0 14px;">' + esc(p.description) + '</p>' : '') +
+        '<div style="color:var(--ink-soft);font-size:0.95rem;margin-bottom:18px;">' + p.questions.length + ' question' + (p.questions.length>1?'s':'') + ' détectée' + (p.questions.length>1?'s':'') + '.</div>' +
+        '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
+        '<button class="btn btn-primary" data-action="begin-imported">Commencer le QCM</button>' +
+        '<button class="btn btn-ghost" data-action="cancel-import">Choisir un autre fichier</button>' +
+        '</div></div>';
+    }
+
+    return topbar() +
+    '<div class="wrap" style="padding-top:52px;padding-bottom:80px;">' +
+      resumeBlock +
+      '<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center;" class="home-grid">' +
+        '<div class="fade-in">' +
+          '<div class="status-pill" style="background:var(--accent-soft);color:var(--accent-strong);margin-bottom:18px;">' + logo(14) + ' Entraînement &amp; examens blancs</div>' +
+          '<h1 class="display" style="font-size:clamp(2.2rem,4.5vw,3.4rem);line-height:1.06;margin:0 0 18px;font-weight:600;">Importez un QCM.<br>Passez-le. Comprenez vos erreurs.</h1>' +
+          '<p style="color:var(--ink-soft);font-size:1.08rem;line-height:1.6;max-width:46ch;margin:0 0 28px;">Lucerna transforme un simple fichier JSON en une session de révision complète : navigation libre, questions à marquer, récapitulatif avant validation et correction détaillée à la fin.</p>' +
+          '<div style="display:flex;gap:14px;flex-wrap:wrap;">' +
+          '<button class="btn btn-primary" data-action="pick-file"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M12 4 7 9M12 4l5 5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round"/></svg> Importer un QCM</button>' +
+          '<button class="btn btn-ghost" data-action="try-demo">Essayer avec un exemple</button>' +
+          '</div>' +
+          '<button class="btn btn-ghost btn-sm" data-action="show-json-help" style="margin-top:18px;padding-left:0;color:var(--ink-soft);">Voir le format JSON attendu →</button>' +
+        '</div>' +
+        '<div class="fade-in" style="animation-delay:.08s;">' +
+          '<div class="drop' + (state.dragOver? ' drag':'') + '" id="dropzone" style="padding:44px 28px;text-align:center;">' +
+            '<div style="width:56px;height:56px;border-radius:16px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">' +
+            '<svg class="icon" style="width:26px;height:26px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3M12 3 7.5 7.5M12 3l4.5 4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15v3.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V15" stroke-linecap="round"/></svg></div>' +
+            '<div style="font-weight:800;font-size:1.05rem;">Glissez votre fichier ici</div>' +
+            '<div style="color:var(--ink-soft);font-size:0.9rem;margin:6px 0 18px;">Format .json uniquement</div>' +
+            '<button class="btn btn-soft btn-sm" data-action="pick-file">Parcourir mes fichiers</button>' +
+            '<input type="file" id="file-input" accept="application/json,.json">' +
+          '</div>' +
+          errorBanner() +
+        '</div>' +
+      '</div>' +
+      preview +
+      '<div class="fade-in" style="margin-top:64px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;" id="feature-grid">' +
+        featureCard("Navigation libre","Passez d\'une question à l\'autre à tout moment, revenez en arrière, sautez une question difficile sans jamais perdre vos réponses.") +
+        featureCard("Marquage pour révision","Signalez les questions à revoir avant de valider, et retrouvez-les d\'un coup d\'œil dans le récapitulatif.") +
+        featureCard("Correction détaillée","À la fin, comparez votre réponse à la bonne réponse, question par question, avec l\'explication si elle existe.") +
+      '</div>' +
+    '</div>' +
+    jsonHelpModal();
+  }
+
+  function featureCard(title, text){
+    return '<div class="card" style="padding:22px;">' +
+      '<h3 style="font-size:1.02rem;margin:0 0 8px;font-family:inherit;font-weight:800;">' + esc(title) + '</h3>' +
+      '<p style="color:var(--ink-soft);font-size:0.92rem;line-height:1.55;margin:0;">' + esc(text) + '</p></div>';
+  }
+
+  function jsonHelpModal(){
+    if(!state.showJsonHelp) return "";
+    var sample = '{\n  "title": "Titre du QCM",\n  "description": "Description optionnelle",\n  "questions": [\n    {\n      "id": 1,\n      "question": "Quelle est la capitale de la France ?",\n      "choices": [\n        { "id": "A", "text": "Lyon" },\n        { "id": "B", "text": "Paris" }\n      ],\n      "correctAnswers": ["B"],\n      "explanation": "Paris est la capitale de la France."\n    }\n  ]\n}';
+    return '<div class="modal-back" data-action="close-json-help"><div class="modal fade-in" role="dialog" aria-modal="true">' +
+      '<h3 class="display" style="margin:0 0 12px;font-size:1.25rem;">Format JSON attendu</h3>' +
+      '<p style="color:var(--ink-soft);font-size:0.9rem;margin:0 0 14px;">Chaque question a des choix identifiés (<code>id</code>) et une liste <code>correctAnswers</code> — plusieurs bonnes réponses sont possibles. <code>explanation</code> et <code>image</code> sont facultatifs.</p>' +
+      '<pre style="background:var(--surface-soft);border-radius:var(--radius-s);padding:14px;font-size:0.78rem;overflow:auto;max-height:280px;line-height:1.5;">' + esc(sample) + '</pre>' +
+      '<div style="text-align:right;margin-top:16px;"><button class="btn btn-primary btn-sm" data-action="close-json-help">Compris</button></div>' +
+      '</div></div>';
+  }
+
+  /* ---------------------------------------------------------
+     RENDER: QUIZ
+  --------------------------------------------------------- */
+  function choiceLetter(i){ return String.fromCharCode(65+i); }
+
+  function renderQuestionCard(q){
+    var multi = isMulti(q);
+    var selected = state.answers[qid(q)] || [];
+    var choicesHtml = q.choices.map(function(c, i){
+      var checked = selected.indexOf(c.id) !== -1;
+      return '<button type="button" class="choice' + (multi?'':' radio') + '" role="' + (multi?'checkbox':'radio') + '" aria-checked="' + checked + '" data-action="select" data-choice="' + esc(c.id) + '">' +
+        '<span class="choice-mark">' + (checked ? (multi ? '✓' : '●') : choiceLetter(i)) + '</span>' +
+        '<span style="padding-top:2px;">' + esc(c.text) + '</span></button>';
+    }).join("");
+
+    return '<div class="card fade-in" id="question-card" style="padding:30px 28px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:6px;">' +
+        '<div style="color:var(--accent);font-weight:800;font-size:0.85rem;letter-spacing:.01em;">Question ' + (state.current+1) + '</div>' +
+        '<button class="btn btn-sm ' + (isFlagged(q) ? '' : 'btn-ghost') + '" data-action="toggle-flag" style="' + (isFlagged(q) ? 'background:var(--gold-soft);color:var(--gold-ink);' : '') + '" aria-pressed="' + isFlagged(q) + '">' +
+          '<svg class="icon" viewBox="0 0 24 24" fill="' + (isFlagged(q)?'currentColor':'none') + '" stroke="currentColor" stroke-width="2"><path d="M5 3v18M5 4h11l-2.5 3.5L16 11H5" stroke-linejoin="round"/></svg>' +
+          (isFlagged(q) ? 'Marquée' : 'Marquer pour révision') + '</button>' +
+      '</div>' +
+      '<h2 class="display" style="font-size:1.5rem;line-height:1.35;font-weight:600;margin:0 0 20px;">' + esc(q.question) + '</h2>' +
+      (q.image ? '<img src="' + esc(q.image) + '" alt="" style="max-width:100%;border-radius:var(--radius-m);margin-bottom:20px;border:1px solid var(--border);">' : '') +
+      (multi ? '<div style="color:var(--ink-soft);font-size:0.85rem;margin-bottom:12px;">Plusieurs réponses possibles — sélectionnez-les toutes.</div>' : '') +
+      '<div style="display:flex;flex-direction:column;gap:10px;" role="' + (multi?'group':'radiogroup') + '" aria-label="Choix de réponse">' + choicesHtml + '</div>' +
+    '</div>';
+  }
+
+  function renderNavGrid(){
+    var qs = questions();
+    var items = qs.map(function(q, i){
+      var cls = "qbadge";
+      if(isAnswered(q)) cls += " answered";
+      if(i === state.current) cls += " current";
+      if(isFlagged(q)) cls += " flag";
+      var dot = (!isAnswered(q) && state.visited[qid(q)]) ? '<span class="dot"></span>' : '';
+      return '<button class="' + cls + '" data-action="goto" data-index="' + i + '" aria-current="' + (i===state.current) + '" aria-label="Question ' + (i+1) + (isAnswered(q)?', répondue':'') + (isFlagged(q)?', marquée':'') + '">' + (i+1) + dot + '</button>';
+    }).join("");
+    return '<div class="card" style="padding:18px 18px 14px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+      '<div style="font-weight:800;font-size:0.85rem;">Toutes les questions</div>' +
+      '<div style="display:flex;gap:14px;font-size:0.75rem;color:var(--ink-soft);flex-wrap:wrap;">' +
+      legendDot("var(--accent-soft)","var(--accent)","Répondue") + legendDot("var(--surface)","var(--border-strong)","Non répondue") + '<span style="display:flex;align-items:center;gap:5px;">⚑ Marquée</span>' +
+      '</div></div>' +
+      '<div class="scrollx" style="display:flex;flex-wrap:wrap;gap:9px;max-height:190px;overflow-y:auto;">' + items + '</div>' +
+    '</div>';
+  }
+  function legendDot(bg,border,label){
+    return '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:4px;background:'+bg+';border:1.5px solid '+border+';display:inline-block;"></span>'+label+'</span>';
+  }
+
+  function renderQuiz(){
+    var q = currentQ();
+    var pct = totalQ() ? Math.round(((state.current)/totalQ())*100) : 0;
+    var header = '<div class="topbar"><div class="wrap" style="padding:14px 20px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">' +
+        '<div style="display:flex;align-items:center;gap:9px;color:var(--accent);min-width:0;">' + logo(20) +
+        '<span style="font-weight:800;color:var(--ink);white-space:nowrap;">Lucerna</span>' +
+        '<span style="color:var(--border-strong);">•</span>' +
+        '<span style="color:var(--ink-soft);font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(state.quiz.title) + '</span></div>' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span style="font-weight:700;font-size:0.88rem;color:var(--ink-soft);white-space:nowrap;">Question ' + (state.current+1) + ' / ' + totalQ() + '</span>' +
+        sunMoonBtn() +
+        '</div>' +
+      '</div>' +
+      '<div class="progressbar" style="margin-top:12px;"><div style="width:' + pct + '%;"></div></div>' +
+      '</div></div>';
+
+    var nav = '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:20px;flex-wrap:wrap;">' +
+      '<button class="btn btn-ghost" data-action="prev" ' + (state.current===0?'disabled':'') + '>' +
+      '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg> Précédent</button>' +
+      '<button class="btn btn-soft" data-action="review">Récapitulatif</button>' +
+      (state.current === totalQ()-1
+        ? '<button class="btn btn-primary" data-action="review">Terminer <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+        : '<button class="btn btn-primary" data-action="next">Suivant <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>') +
+      '</div>';
+
+    return header +
+      '<div class="wrap" style="padding:30px 20px 60px;display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start;" id="quiz-grid">' +
+        '<div>' + renderQuestionCard(q) + nav + '</div>' +
+        '<div>' + renderNavGrid() + '</div>' +
+      '</div>';
+  }
+
+  /* ---------------------------------------------------------
+     RENDER: REVIEW
+  --------------------------------------------------------- */
+  function renderReview(){
+    var c = counts();
+    var qs = questions();
+    var rows = qs.map(function(q,i){
+      var st = isAnswered(q) ? "pill-correct" : "pill-unanswered";
+      var label = isAnswered(q) ? "Répondue" : "Non répondue";
+      return '<button data-action="goto" data-index="'+i+'" style="all:unset;cursor:pointer;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--radius-m);border:1px solid var(--border);background:var(--surface);width:100%;box-sizing:border-box;">' +
+        '<span style="font-weight:800;color:var(--ink-soft);width:26px;flex:none;">' + (i+1) + '</span>' +
+        '<span style="flex:1;font-weight:600;font-size:0.94rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(q.question) + '</span>' +
+        '<span class="status-pill ' + st + '">' + label + '</span>' +
+        (isFlagged(q) ? '<span class="status-pill pill-flag">⚑ Marquée</span>' : '') +
+      '</button>';
+    }).join('<div style="height:8px;"></div>');
+
+    return topbar() +
+    '<div class="wrap" style="padding:44px 20px 70px;max-width:820px;">' +
+      '<h1 class="display" style="font-size:1.9rem;margin:0 0 6px;font-weight:600;">Récapitulatif avant soumission</h1>' +
+      '<p style="color:var(--ink-soft);margin:0 0 26px;">Vérifiez votre progression puis validez votre QCM.</p>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;" id="review-stats">' +
+        statTile(c.total,"au total","var(--ink)") +
+        statTile(c.answered,"répondues","var(--success)") +
+        statTile(c.unanswered,"non répondues","var(--ink-faint)") +
+        statTile(c.flagged,"marquées","var(--gold)") +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;">' + rows + '</div>' +
+      '<div style="display:flex;justify-content:space-between;gap:14px;margin-top:30px;flex-wrap:wrap;">' +
+        '<button class="btn btn-ghost" data-action="back-to-quiz">← Retour au QCM</button>' +
+        '<button class="btn btn-primary" data-action="submit">Soumettre le QCM</button>' +
+      '</div>' +
+    '</div>' + confirmSubmitModal();
+  }
+
+  function statTile(n,label,color){
+    return '<div class="card" style="padding:16px;text-align:center;">' +
+      '<div class="display" style="font-size:1.7rem;font-weight:700;color:'+color+';">' + n + '</div>' +
+      '<div style="color:var(--ink-soft);font-size:0.78rem;margin-top:2px;">' + label + '</div></div>';
+  }
+
+  function confirmSubmitModal(){
+    if(!state.showConfirmSubmit) return "";
+    var c = counts();
+    return '<div class="modal-back" data-action="cancel-submit"><div class="modal fade-in" role="alertdialog" aria-modal="true">' +
+      '<div style="width:44px;height:44px;border-radius:12px;background:var(--gold-soft);color:var(--gold-ink);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">' +
+      '<svg class="icon" style="width:22px;height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linejoin="round"/></svg></div>' +
+      '<h3 class="display" style="margin:0 0 8px;font-size:1.2rem;">Questions sans réponse</h3>' +
+      '<p style="color:var(--ink-soft);margin:0 0 20px;">Vous avez encore <strong style="color:var(--ink);">' + c.unanswered + ' question' + (c.unanswered>1?'s':'') + '</strong> sans réponse. Voulez-vous vraiment soumettre le QCM ?</p>' +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+      '<button class="btn btn-ghost" data-action="cancel-submit">Revenir au QCM</button>' +
+      '<button class="btn btn-primary" data-action="confirm-submit">Soumettre</button>' +
+      '</div></div></div>';
+  }
+
+  /* ---------------------------------------------------------
+     RENDER: RESULTS
+  --------------------------------------------------------- */
+  function renderResults(){
+    var r = computeResults();
+    var radius = 72, circ = 2*Math.PI*radius;
+    var offset = circ - (r.pct/100)*circ;
+    var ring = '<svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg);">' +
+      '<circle class="ring-track" cx="90" cy="90" r="'+radius+'" fill="none" stroke-width="14"/>' +
+      '<circle class="ring-progress" cx="90" cy="90" r="'+radius+'" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="'+offset+'"/>' +
+      '</svg>';
+
+    return topbar() +
+    '<div class="wrap" style="padding:48px 20px 30px;max-width:760px;text-align:center;">' +
+      '<div class="status-pill" style="background:var(--accent-soft);color:var(--accent-strong);">Résultat</div>' +
+      '<div style="position:relative;width:180px;height:180px;margin:22px auto 8px;">' + ring +
+        '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">' +
+        '<div class="display" style="font-size:2.1rem;font-weight:700;">' + r.correct + '/' + r.total + '</div>' +
+        '<div style="color:var(--ink-soft);font-weight:700;font-size:0.95rem;">' + r.pct + '%</div>' +
+        '</div></div>' +
+      '<h2 class="display" style="font-size:1.5rem;margin:10px 0 30px;font-weight:600;">' + resultMessage(r.pct) + '</h2>' +
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:34px;">' +
+        statTile(r.correct,"correctes","var(--success)") +
+        statTile(r.incorrect,"incorrectes","var(--danger)") +
+        statTile(r.unanswered,"sans réponse","var(--ink-faint)") +
+      '</div>' +
+      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
+        '<button class="btn btn-primary" data-action="show-correction">Voir la correction détaillée</button>' +
+        '<button class="btn btn-ghost" data-action="retake">Recommencer ce QCM</button>' +
+        '<button class="btn btn-ghost" data-action="new-quiz">Importer un autre QCM</button>' +
+      '</div>' +
+    '</div>' +
+    renderCorrection();
+  }
+
+  function resultMessage(pct){
+    if(pct === 100) return "Score parfait !";
+    if(pct >= 80) return "Très bon score.";
+    if(pct >= 50) return "Bon travail, encore un effort.";
+    return "Continuez à vous entraîner.";
+  }
+
+  function renderCorrection(){
+    var qs = questions();
+    var filtered = qs.map(function(q,i){ return {q:q,i:i}; }).filter(function(o){
+      if(state.correctionFilter === "incorrect"){
+        return isAnswered(o.q) ? !isCorrectAnswer(o.q) : true;
+      }
+      return true;
+    });
+
+    var items = filtered.map(function(o){
+      var q = o.q, i = o.i;
+      var answered = isAnswered(q);
+      var correct = answered && isCorrectAnswer(q);
+      var sel = state.answers[qid(q)] || [];
+      var choiceText = function(id){ var c = q.choices.filter(function(c){return c.id===id;})[0]; return c ? c.text : id; };
+
+      var statusPill = !answered
+        ? '<span class="status-pill pill-unanswered">○ Sans réponse</span>'
+        : (correct ? '<span class="status-pill pill-correct">✓ Correcte</span>' : '<span class="status-pill pill-incorrect">✗ Incorrecte</span>');
+
+      var yourAnswer = !answered
+        ? '<div style="color:var(--ink-faint);font-style:italic;">Aucune réponse sélectionnée</div>'
+        : '<div style="display:flex;flex-direction:column;gap:4px;">' + sel.map(function(id){
+            var ok = q.correctAnswers.indexOf(id) !== -1;
+            return '<div style="color:'+(ok?'var(--success)':'var(--danger)')+';font-weight:700;">' + esc(id) + '. ' + esc(choiceText(id)) + (ok ? ' ✓' : ' ✗') + '</div>';
+          }).join("") + '</div>';
+
+      var correctAnswer = '<div style="display:flex;flex-direction:column;gap:4px;">' + q.correctAnswers.map(function(id){
+        return '<div style="color:var(--success);font-weight:700;">' + esc(id) + '. ' + esc(choiceText(id)) + ' ✓</div>';
+      }).join("") + '</div>';
+
+      return '<div class="card" style="padding:24px;text-align:left;">' +
+        '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;">' +
+        '<div style="color:var(--ink-soft);font-weight:800;font-size:0.85rem;">Question ' + (i+1) + '</div>' + statusPill + '</div>' +
+        '<h3 style="font-size:1.1rem;font-weight:700;margin:0 0 16px;font-family:inherit;">' + esc(q.question) + '</h3>' +
+        (q.image ? '<img src="'+esc(q.image)+'" alt="" style="max-width:100%;border-radius:var(--radius-m);margin-bottom:16px;">' : '') +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:'+(q.explanation?'14px':'0')+';" class="correction-grid">' +
+          '<div><div style="font-size:0.75rem;font-weight:800;color:var(--ink-faint);margin-bottom:6px;">VOTRE RÉPONSE</div>' + yourAnswer + '</div>' +
+          '<div><div style="font-size:0.75rem;font-weight:800;color:var(--ink-faint);margin-bottom:6px;">BONNE RÉPONSE</div>' + correctAnswer + '</div>' +
+        '</div>' +
+        (q.explanation ? '<div style="background:var(--surface-soft);border-radius:var(--radius-s);padding:12px 14px;font-size:0.9rem;color:var(--ink-soft);"><strong style="color:var(--ink);">Explication — </strong>' + esc(q.explanation) + '</div>' : '') +
+      '</div>';
+    }).join("");
+
+    return '<div class="wrap" style="padding:10px 20px 80px;max-width:820px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">' +
+      '<h2 class="display" style="font-size:1.4rem;margin:0;font-weight:600;">Correction détaillée</h2>' +
+      '<div style="display:flex;gap:8px;">' +
+      '<button class="btn btn-sm ' + (state.correctionFilter==='all'?'btn-primary':'btn-ghost') + '" data-action="filter-all">Toutes</button>' +
+      '<button class="btn btn-sm ' + (state.correctionFilter==='incorrect'?'btn-primary':'btn-ghost') + '" data-action="filter-incorrect">Incorrectes seulement</button>' +
+      '</div></div>' +
+      '<div style="display:flex;flex-direction:column;gap:16px;">' + (items || '<div class="card" style="padding:30px;text-align:center;color:var(--ink-soft);">Aucune question incorrecte 🎉</div>') + '</div>' +
+    '</div>';
+  }
+
+  /* ---------------------------------------------------------
+     MASTER RENDER
+  --------------------------------------------------------- */
+  function render(){
+    var app = document.getElementById("app");
+    var html;
+    if(state.screen === "home") html = renderHome();
+    else if(state.screen === "quiz") html = renderQuiz();
+    else if(state.screen === "review") html = renderReview();
+    else if(state.screen === "results") html = renderResults();
+    app.innerHTML = html;
+    injectResponsiveTweaks();
+    bindDropzone();
+  }
+
+  function injectResponsiveTweaks(){
+    if(window.innerWidth <= 860){
+      var hg = document.querySelector(".home-grid");
+      if(hg){ hg.style.gridTemplateColumns = "1fr"; hg.style.gap = "32px"; }
+      var fg = document.getElementById("feature-grid");
+      if(fg){ fg.style.gridTemplateColumns = "1fr"; }
+      var qg = document.getElementById("quiz-grid");
+      if(qg){ qg.style.gridTemplateColumns = "1fr"; }
+      var rs = document.getElementById("review-stats");
+      if(rs){ rs.style.gridTemplateColumns = "repeat(2,1fr)"; }
+      var cgs = document.querySelectorAll(".correction-grid");
+      cgs.forEach(function(g){ g.style.gridTemplateColumns = "1fr"; });
+    }
+  }
+
+  function bindDropzone(){
+    var dz = document.getElementById("dropzone");
+    if(!dz) return;
+    ["dragenter","dragover"].forEach(function(ev){
+      dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.add("drag"); });
+    });
+    ["dragleave","drop"].forEach(function(ev){
+      dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.remove("drag"); });
+    });
+    dz.addEventListener("drop", function(e){
+      var f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) handleFile(f);
+    });
+    var fi = document.getElementById("file-input");
+    if(fi){ fi.addEventListener("change", function(e){ handleFile(e.target.files[0]); }); }
+  }
+
+  /* ---------------------------------------------------------
+     EVENT DELEGATION
+  --------------------------------------------------------- */
+  document.addEventListener("click", function(e){
+    var el = e.target.closest("[data-action]");
+    if(!el) return;
+    if(el.classList.contains("modal-back") && e.target !== el) return;
+    var action = el.getAttribute("data-action");
+    switch(action){
+      case "toggle-theme": toggleTheme(); break;
+      case "pick-file": {
+        var fi = document.getElementById("file-input");
+        if(fi) fi.click();
+        else { render(); setTimeout(function(){ var f2=document.getElementById("file-input"); if(f2) f2.click(); },0); }
+        break;
+      }
+      case "try-demo": state.error=null; state.importPreview = JSON.parse(JSON.stringify(DEMO_QUIZ)); render(); break;
+      case "begin-imported": if(state.importPreview) startQuiz(state.importPreview); break;
+      case "cancel-import": state.importPreview = null; render(); break;
+      case "show-json-help": state.showJsonHelp = true; render(); break;
+      case "close-json-help": state.showJsonHelp = false; render(); break;
+      case "resume": { var s = loadSavedSession(); if(s) resumeSession(s); break; }
+      case "dismiss-resume": state.hasSavedSession = false; clearSaved(); render(); break;
+      case "select": {
+        var q = currentQ(); var cid = el.getAttribute("data-choice");
+        if(q) selectChoice(q, cid);
+        break;
+      }
+      case "toggle-flag": toggleFlagCurrent(); break;
+      case "prev": goTo(state.current-1); break;
+      case "next": goTo(state.current+1); break;
+      case "goto": goTo(parseInt(el.getAttribute("data-index"),10)); break;
+      case "review": goReview(); break;
+      case "back-to-quiz": backToQuiz(); break;
+      case "submit": requestSubmit(); break;
+      case "cancel-submit": state.showConfirmSubmit = false; render(); break;
+      case "confirm-submit": doSubmit(); break;
+      case "show-correction": {
+        var target = document.querySelector(".wrap:nth-of-type(2)");
+        window.scrollTo({top: document.body.scrollHeight*0.32, behavior:"smooth"});
+        break;
+      }
+      case "retake": retakeSameQuiz(); break;
+      case "new-quiz": restart(); break;
+      case "filter-all": state.correctionFilter = "all"; render(); break;
+      case "filter-incorrect": state.correctionFilter = "incorrect"; render(); break;
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(state.screen !== "quiz") return;
+    if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if(e.key === "ArrowRight"){ goTo(state.current+1); }
+    if(e.key === "ArrowLeft"){ goTo(state.current-1); }
+  });
+
+  window.addEventListener("resize", function(){ injectResponsiveTweaks(); });
+
+  /* ---------------------------------------------------------
+     INIT
+  --------------------------------------------------------- */
+  applyTheme();
+  var saved = loadSavedSession();
+  if(saved && saved.quiz && saved.screen !== "results"){ state.hasSavedSession = true; }
+  render();
+})();
+</script>
+</body>
+</html>
