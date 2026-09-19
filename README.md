@@ -8,18 +8,21 @@ Aucune installation, aucun backend, aucune dépendance à builder : `lucerna.htm
 
 ## Sommaire
 
-- [Démarrage rapide](#démarrage-rapide)
-- [Fonctionnalités](#fonctionnalités)
-- [Parcours utilisateur](#parcours-utilisateur)
-- [Format du fichier JSON](#format-du-fichier-json)
-- [Validation du JSON](#validation-du-json)
-- [Calcul du score](#calcul-du-score)
-- [Sauvegarde et reprise](#sauvegarde-et-reprise)
-- [Thème clair / sombre](#thème-clair--sombre)
-- [Responsive](#responsive)
-- [Architecture technique](#architecture-technique)
-- [Limites connues](#limites-connues)
-- [Idées d'évolution](#idées-dévolution)
+- [Lucerna](#lucerna)
+  - [Sommaire](#sommaire)
+  - [Démarrage rapide](#démarrage-rapide)
+  - [Fonctionnalités](#fonctionnalités)
+  - [Parcours utilisateur](#parcours-utilisateur)
+  - [Format du fichier JSON](#format-du-fichier-json)
+    - [Champs](#champs)
+  - [Validation du JSON](#validation-du-json)
+  - [Calcul du score](#calcul-du-score)
+  - [Sauvegarde et reprise](#sauvegarde-et-reprise)
+  - [Thème clair / sombre](#thème-clair--sombre)
+  - [Responsive](#responsive)
+  - [Architecture technique](#architecture-technique)
+  - [Limites connues](#limites-connues)
+  - [Idées d'évolution](#idées-dévolution)
 
 ---
 
