@@ -607,6 +607,29 @@ window.LucernaCore = (function(){
     var q = currentQ(); if(!q) return;
     var key = qid(q);
     state.flags[key] = !state.flags[key];
+    if(!flaggedIndices().length) state.flagFilter = false;
+    save(); render();
+  }
+
+  function flaggedIndices(){
+    var out = [];
+    questions().forEach(function(q, i){ if(isFlagged(q)) out.push(i); });
+    return out;
+  }
+  function flagFilterActive(){ return state.flagFilter && flaggedIndices().length > 0; }
+
+  // Index reached by Prev/Next (dir = -1/1), honouring the "Marquées seulement" filter; -1 if none.
+  function neighbourIndex(dir){
+    if(flagFilterActive()) return Core.nextIndex(state.current, dir, flaggedIndices());
+    var i = state.current + dir;
+    return (i >= 0 && i < totalQ()) ? i : -1;
+  }
+  function navigate(dir){
+    var i = neighbourIndex(dir);
+    if(i !== -1) goTo(i);
+  }
+  function toggleFlagFilter(){
+    state.flagFilter = !state.flagFilter && flaggedIndices().length > 0;
     save(); render();
   }
 
@@ -934,7 +957,10 @@ window.LucernaCore = (function(){
 
   function renderNavGrid(){
     var qs = questions();
+    var filtering = flagFilterActive();
+    var hasFlags = flaggedIndices().length > 0;
     var items = qs.map(function(q, i){
+      if(filtering && !isFlagged(q)) return "";
       var cls = "qbadge";
       if(isAnswered(q)) cls += " answered";
       if(i === state.current) cls += " current";
@@ -944,10 +970,14 @@ window.LucernaCore = (function(){
     }).join("");
     return '<div class="card" style="padding:18px 18px 14px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
-      '<div style="font-weight:800;font-size:0.85rem;">Toutes les questions</div>' +
-      '<div style="display:flex;gap:14px;font-size:0.75rem;color:var(--ink-soft);flex-wrap:wrap;">' +
+      '<div style="font-weight:800;font-size:0.85rem;">' + (filtering ? 'Questions marquées' : 'Toutes les questions') + '</div>' +
+      '<button class="btn btn-sm ' + (filtering ? '' : 'btn-ghost') + '" data-action="toggle-flag-filter" aria-pressed="' + filtering + '"' +
+        (hasFlags ? '' : ' disabled title="Aucune question marquée"') +
+        ' style="padding:5px 11px;font-size:0.78rem;' + (filtering ? 'background:var(--gold-soft);color:var(--gold-ink);' : '') + '">⚑ Marquées seulement</button>' +
+      '</div>' +
+      '<div style="display:flex;gap:14px;font-size:0.75rem;color:var(--ink-soft);flex-wrap:wrap;margin-bottom:12px;">' +
       legendDot("var(--accent-soft)","var(--accent)","Répondue") + legendDot("var(--surface)","var(--border-strong)","Non répondue") + '<span style="display:flex;align-items:center;gap:5px;">⚑ Marquée</span>' +
-      '</div></div>' +
+      '</div>' +
       '<div class="scrollx" style="display:flex;flex-wrap:wrap;gap:9px;max-height:190px;overflow-y:auto;">' + items + '</div>' +
     '</div>';
   }
@@ -965,7 +995,7 @@ window.LucernaCore = (function(){
         '<span style="color:var(--border-strong);">•</span>' +
         '<span style="color:var(--ink-soft);font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(state.quiz.title) + '</span></div>' +
         '<div style="display:flex;align-items:center;gap:10px;">' +
-        '<span style="font-weight:700;font-size:0.88rem;color:var(--ink-soft);white-space:nowrap;">Question ' + (state.current+1) + ' / ' + totalQ() + '</span>' +
+        '<span id="quiz-position" style="font-weight:700;font-size:0.88rem;color:var(--ink-soft);white-space:nowrap;">Question ' + (state.current+1) + ' / ' + totalQ() + '</span>' +
         examTimer() +
         sunMoonBtn() +
         '</div>' +
@@ -974,12 +1004,12 @@ window.LucernaCore = (function(){
       '</div></div>';
 
     var nav = '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:20px;flex-wrap:wrap;">' +
-      '<button class="btn btn-ghost" data-action="prev" ' + (state.current===0?'disabled':'') + '>' +
+      '<button class="btn btn-ghost" data-action="prev" ' + (neighbourIndex(-1) === -1 ?'disabled':'') + '>' +
       '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg> Précédent</button>' +
       '<button class="btn btn-soft" data-action="review">Récapitulatif</button>' +
-      (state.current === totalQ()-1
+      (neighbourIndex(1) === -1 && !flagFilterActive()
         ? '<button class="btn btn-primary" data-action="review">Terminer <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
-        : '<button class="btn btn-primary" data-action="next">Suivant <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>') +
+        : '<button class="btn btn-primary" data-action="next"' + (neighbourIndex(1) === -1 ? ' disabled' : '') + '>Suivant <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>') +
       '</div>';
 
     return header +
@@ -1295,8 +1325,9 @@ window.LucernaCore = (function(){
         break;
       }
       case "toggle-flag": toggleFlagCurrent(); break;
-      case "prev": goTo(state.current-1); break;
-      case "next": goTo(state.current+1); break;
+      case "toggle-flag-filter": toggleFlagFilter(); break;
+      case "prev": navigate(-1); break;
+      case "next": navigate(1); break;
       case "goto": goTo(parseInt(el.getAttribute("data-index"),10)); break;
       case "review": goReview(); break;
       case "back-to-quiz": backToQuiz(); break;
@@ -1335,8 +1366,8 @@ window.LucernaCore = (function(){
   document.addEventListener("keydown", function(e){
     if(state.screen !== "quiz") return;
     if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
-    if(e.key === "ArrowRight"){ goTo(state.current+1); }
-    if(e.key === "ArrowLeft"){ goTo(state.current-1); }
+    if(e.key === "ArrowRight"){ navigate(1); }
+    if(e.key === "ArrowLeft"){ navigate(-1); }
   });
 
   window.addEventListener("resize", function(){ injectResponsiveTweaks(); });
