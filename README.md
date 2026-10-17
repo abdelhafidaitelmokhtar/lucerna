@@ -1,53 +1,68 @@
 # Lucerna
 
-Lucerna est une application web mono-fichier permettant de **passer un QCM importé depuis un fichier JSON** : navigation libre entre les questions, marquage pour révision, récapitulatif avant soumission, score final et correction détaillée.
+Lucerna est une application web mono-fichier pour **s'entraîner sur des QCM** : une banque de QCM prêts à l'emploi, l'import de vos propres fichiers JSON, un mode examen chronométré, une correction détaillée et un historique pour suivre votre progression.
 
-Aucune installation, aucun backend, aucune dépendance à builder : `lucerna.html` s'ouvre directement dans un navigateur.
+Aucune installation, aucun backend, aucune dépendance à builder : tout tient dans `index.html` (plus les QCM du dossier `qcm/`).
 
 ---
 
 ## Sommaire
 
-- [Lucerna](#lucerna)
-  - [Sommaire](#sommaire)
-  - [Démarrage rapide](#démarrage-rapide)
-  - [Fonctionnalités](#fonctionnalités)
-  - [Parcours utilisateur](#parcours-utilisateur)
-  - [Format du fichier JSON](#format-du-fichier-json)
-    - [Champs](#champs)
-  - [Validation du JSON](#validation-du-json)
-  - [Calcul du score](#calcul-du-score)
-  - [Sauvegarde et reprise](#sauvegarde-et-reprise)
-  - [Thème clair / sombre](#thème-clair--sombre)
-  - [Responsive](#responsive)
-  - [Architecture technique](#architecture-technique)
-  - [Limites connues](#limites-connues)
-  - [Idées d'évolution](#idées-dévolution)
+- [Démarrage rapide](#démarrage-rapide)
+- [Fonctionnalités](#fonctionnalités)
+- [Parcours utilisateur](#parcours-utilisateur)
+- [Banque de QCM](#banque-de-qcm)
+- [Options de lancement](#options-de-lancement)
+- [Mode examen](#mode-examen)
+- [Historique et progression](#historique-et-progression)
+- [Impression / PDF](#impression--pdf)
+- [Format du fichier JSON](#format-du-fichier-json)
+- [Validation du JSON](#validation-du-json)
+- [Calcul du score](#calcul-du-score)
+- [Sauvegarde et reprise](#sauvegarde-et-reprise)
+- [Thème clair / sombre](#thème-clair--sombre)
+- [Responsive](#responsive)
+- [Architecture technique](#architecture-technique)
+- [Tests](#tests)
+- [Limites connues](#limites-connues)
+- [Idées d'évolution](#idées-dévolution)
 
 ---
 
 ## Démarrage rapide
 
-1. Ouvrez `lucerna.html` dans un navigateur (double-clic, ou glisser-déposer dans une fenêtre de navigateur).
-2. Sur la page d'accueil, importez un fichier `.json` respectant le [format attendu](#format-du-fichier-json), ou cliquez sur **« Essayer avec un exemple »** pour tester avec un QCM de démonstration.
-3. Une fois le fichier validé, cliquez sur **« Commencer le QCM »**.
+- **En ligne** : l'application est publiée via GitHub Pages ; ouvrez simplement son adresse.
+- **En local** : lancez un petit serveur à la racine du projet, puis ouvrez `http://localhost:8000/` :
 
-Aucun serveur n'est requis : tout s'exécute côté navigateur.
+  ```bash
+  python -m http.server 8000
+  ```
+
+1. Sur l'accueil, choisissez un QCM dans **« QCM disponibles »**, ou importez votre propre fichier `.json` (bouton ou glisser-déposer) respectant le [format attendu](#format-du-fichier-json).
+2. Réglez les [options de lancement](#options-de-lancement) si besoin.
+3. Cliquez sur **« Commencer le QCM »**.
+
+> Ouvert par double-clic (`file://`), le navigateur bloque le chargement de la banque : l'accueil l'indique et l'import manuel d'un fichier reste disponible.
 
 ---
 
 ## Fonctionnalités
 
+- **Banque de QCM** affichée à l'accueil (titre, description, nombre de questions, dernier et meilleur score).
 - **Import drag & drop** ou bouton classique, avec validation stricte du JSON et messages d'erreur explicites.
-- **Aperçu avant lancement** : titre, description, nombre de questions détectées.
+- **Aperçu avant lancement** : titre, description, nombre de questions, options de lancement.
+- **Mélange des questions et/ou des choix de réponse** avant de commencer.
+- **Mode examen** avec minuteur global (1 h 30 par défaut, durée personnalisable) et soumission automatique.
 - **Questions à choix unique ou multiple**, détectées automatiquement selon le nombre de bonnes réponses (`correctAnswers`).
 - **Navigation libre** : boutons Précédent / Suivant, grille de numéros cliquables, raccourcis clavier (flèches gauche/droite).
 - **États visuels distincts** pour chaque question (répondue, non répondue, marquée, en cours) — combinant couleur, icônes et formes pour rester accessible sans dépendre uniquement de la couleur.
-- **Marquage « Flag / Review »** indépendant du fait d'avoir répondu ou non.
+- **Marquage « Flag / Review »** indépendant du fait d'avoir répondu ou non, et filtre **« Marquées seulement »** pendant le passage du QCM.
 - **Écran de récapitulatif** avant soumission : compteurs (total, répondues, non répondues, marquées) et liste cliquable de toutes les questions.
 - **Confirmation de soumission** si des questions restent sans réponse.
 - **Résultats** avec anneau de score animé, pourcentage et répartition correct / incorrect / sans réponse.
 - **Correction détaillée** question par question : réponse donnée, bonne réponse, statut, explication (si fournie), avec un filtre « Incorrectes seulement ».
+- **Historique des tentatives** avec graphique d'évolution du score par QCM.
+- **Impression / PDF** des résultats et de la correction complète.
 - **Sauvegarde automatique** de la progression dans le navigateur (reprise possible après fermeture).
 - **Mode clair / sombre**, bascule manuelle + détection des préférences système.
 - **Responsive** : desktop, tablette, mobile.
@@ -57,11 +72,68 @@ Aucun serveur n'est requis : tout s'exécute côté navigateur.
 ## Parcours utilisateur
 
 ```
-Accueil → Import JSON → Validation → Aperçu → Lancement du QCM
+Accueil → Choix dans la banque ou import JSON → Aperçu + options
+   → Lancement du QCM (minuteur si mode examen)
    → Réponses aux questions → Navigation libre → Marquage (optionnel)
    → Récapitulatif → (Confirmation si incomplet) → Soumission
-   → Résultats → Correction détaillée
+   → Résultats → Correction détaillée → Impression / PDF
+   → Historique mis à jour sur l'accueil
 ```
+
+---
+
+## Banque de QCM
+
+Les QCM proposés à l'accueil sont des fichiers JSON du dossier `qcm/`, recensés dans le manifeste **`qcm/index.json`** :
+
+```json
+["ccdv-f.json"]
+```
+
+Pour ajouter un QCM :
+
+1. déposez le fichier dans `qcm/` (même [format](#format-du-fichier-json) que pour l'import) ;
+2. ajoutez son nom de fichier à la liste de `qcm/index.json`.
+
+Chaque fichier est validé comme un import : un fichier invalide ou introuvable est ignoré (avertissement dans la console) sans empêcher l'affichage des autres.
+
+---
+
+## Options de lancement
+
+Sur l'aperçu, avant « Commencer le QCM » :
+
+- **Mélanger les questions** — l'ordre est tiré une fois au lancement et conservé en cas de rechargement.
+- **Mélanger les choix de réponse** — les lettres (A, B, C…) suivent l'ordre affiché. Comme les explications des fichiers citent les lettres d'origine, la correction rappelle la lettre d'origine quand elle diffère, par exemple « B (D dans l'explication) ».
+- **Mode examen avec minuteur** — durée préremplie à 1 h 30, modifiable (entre 1 minute et 10 heures).
+
+« Recommencer ce QCM » réutilise les mêmes options, avec un nouveau tirage.
+
+---
+
+## Mode examen
+
+- Le temps restant est affiché en haut de l'écran pendant le QCM et le récapitulatif ; il passe en rouge sous les 5 dernières minutes.
+- Le minuteur repose sur une heure de fin absolue : **recharger la page ne le remet pas à zéro**, et ramène directement dans l'examen.
+- **À la fin du temps**, le QCM est soumis automatiquement (sans confirmation) ; les questions sans réponse comptent comme « sans réponse ». Si la page est rouverte après l'échéance, l'examen est soumis dès l'ouverture.
+- **« Abandonner l'examen »** demande une confirmation, puis soumet et enregistre la tentative avec les réponses données. Un examen ne peut pas être quitté sans être enregistré.
+- Les résultats indiquent « Temps écoulé » le cas échéant, et le temps utilisé.
+
+---
+
+## Historique et progression
+
+Chaque soumission (manuelle, abandon ou fin du temps) est enregistrée : QCM, date, score, répartition, mode examen, temps utilisé, options de mélange.
+
+- Chaque carte de la banque affiche « Dernier : X % · Meilleur : Y % ».
+- La section **« Mes résultats »** de l'accueil liste les tentatives (la plus récente en premier) et trace un graphique d'évolution du score pour chaque QCM passé au moins deux fois.
+- **« Effacer l'historique »** supprime toutes les tentatives, après confirmation.
+
+---
+
+## Impression / PDF
+
+Le bouton **« Imprimer / PDF »** des résultats ouvre l'impression du navigateur (choisissez « Enregistrer en PDF » pour obtenir un fichier). La page imprimée contient le titre, la date, le score, la répartition, la mention « Temps écoulé » le cas échéant, puis la **correction complète** (quel que soit le filtre affiché à l'écran), en thème clair et sans boutons.
 
 ---
 
@@ -96,7 +168,7 @@ Accueil → Import JSON → Validation → Aperçu → Lancement du QCM
 | Champ | Niveau | Obligatoire | Description |
 |---|---|---|---|
 | `title` | QCM | non | Titre affiché dans l'application. Par défaut : « QCM sans titre ». |
-| `description` | QCM | non | Courte description affichée sur l'aperçu d'import. |
+| `description` | QCM | non | Courte description affichée sur la carte et l'aperçu. |
 | `questions` | QCM | **oui** | Liste des questions (au moins une). |
 | `id` | question | **oui** | Identifiant unique de la question. |
 | `question` | question | **oui** | Énoncé de la question. |
@@ -111,7 +183,7 @@ Accueil → Import JSON → Validation → Aperçu → Lancement du QCM
 
 ## Validation du JSON
 
-À l'import, l'application vérifie que :
+À l'import (et au chargement de la banque), l'application vérifie que :
 
 - le fichier est un JSON syntaxiquement valide ;
 - `questions` est un tableau non vide ;
@@ -119,7 +191,7 @@ Accueil → Import JSON → Validation → Aperçu → Lancement du QCM
 - chaque question a au moins 2 `choices`, chacun avec `id` et `text` ;
 - `correctAnswers` est non vide et référence uniquement des `id` présents dans `choices`.
 
-En cas d'erreur, la liste complète des problèmes détectés (question par question) est affichée pour permettre une correction rapide du fichier.
+En cas d'erreur à l'import, la liste complète des problèmes détectés (question par question) est affichée pour permettre une correction rapide du fichier.
 
 ---
 
@@ -137,7 +209,7 @@ Le pourcentage de réussite est calculé comme `correctes / total × 100`, arron
 
 ## Sauvegarde et reprise
 
-La progression (quiz chargé, réponses, marquages, question courante) est enregistrée automatiquement dans le `localStorage` du navigateur à chaque interaction. Si l'utilisateur revient sur la page d'accueil avec une session en cours non terminée, une bannière propose de **reprendre** ou d'**ignorer** cette session.
+La progression (QCM chargé, options, réponses, marquages, question courante, échéance du minuteur) est enregistrée automatiquement dans le `localStorage` du navigateur à chaque interaction. Hors mode examen, si l'utilisateur revient sur l'accueil avec une session non terminée, une bannière propose de **reprendre** ou d'**ignorer** cette session. En mode examen, la page revient directement dans l'examen (voir [Mode examen](#mode-examen)).
 
 > La sauvegarde est locale au navigateur/appareil utilisé : elle n'est pas partagée entre appareils et est effacée si l'utilisateur vide les données du site.
 
@@ -163,24 +235,37 @@ L'interface s'adapte à la largeur d'écran :
 Choix délibéré : **un seul fichier HTML autoportant**, sans build ni framework.
 
 - **HTML/CSS** : mise en page en CSS natif (variables CSS pour la palette light/dark), quelques utilitaires Tailwind (chargé via CDN) pour la mise en page rapide.
+- **`LucernaCore`** : un premier bloc `<script>` regroupe les fonctions pures (mélange, durée, minuteur, score, navigation filtrée, résumé d'historique), sans DOM ni état, testables isolément.
 - **JavaScript vanilla** (IIFE) : un objet d'état central (`state`) et des fonctions de rendu par écran (`renderHome`, `renderQuiz`, `renderReview`, `renderResults`), avec un re-rendu complet du conteneur `#app` à chaque changement d'état — largement suffisant pour ce volume de données et cette fréquence d'interaction.
 - **Délégation d'événements** : un seul écouteur de clic sur `document`, qui route les actions via des attributs `data-action`.
+- **Stockage** : session en cours `lucerna:quiz-session:v2` (une session `v1` est migrée automatiquement), historique `lucerna:history:v1`, thème `lucerna:theme`.
 - **Polices** : Fraunces (titres) + Manrope (interface), via Google Fonts.
-- **Sécurité** : tout le texte provenant du JSON importé (titres, questions, choix, explications) est échappé avant insertion dans le DOM, pour éviter toute injection HTML via un fichier importé.
+- **Sécurité** : tout le texte provenant d'un JSON (banque ou import : titres, questions, choix, explications) est échappé avant insertion dans le DOM, pour éviter toute injection HTML.
 
-Ce choix évite la complexité d'un framework (React, Vue…) et d'une étape de build pour une application qui reste, fonctionnellement, un formulaire d'état à plusieurs écrans — au bénéfice de la portabilité (un seul fichier à partager ou héberger).
+Ce choix évite la complexité d'un framework (React, Vue…) et d'une étape de build pour une application qui reste, fonctionnellement, un formulaire d'état à plusieurs écrans — au bénéfice de la portabilité.
+
+---
+
+## Tests
+
+Les tests tournent dans Microsoft Edge ou Google Chrome en mode headless (rien à installer d'autre que Python 3) :
+
+```bash
+python tests/run_tests.py              # toute la suite
+python tests/run_tests.py --grep exam  # seulement les tests dont le nom contient « exam »
+```
+
+Le script sert le projet en HTTP local, ouvre `tests/test.html`, qui appelle `LucernaCore` directement et pilote la vraie application dans une `<iframe>`. Le paramètre d'URL `?bank=<chemin du manifeste>` permet de charger une autre banque (utilisé par les tests avec `tests/fixtures/`).
 
 ---
 
 ## Limites connues
 
-- La sauvegarde de progression est locale au navigateur (pas de compte utilisateur, pas de synchronisation).
-- Un seul QCM actif à la fois (pas d'historique multi-QCM conservé).
+- La sauvegarde de progression et l'historique sont locaux au navigateur (pas de compte utilisateur, pas de synchronisation entre appareils).
+- Un seul QCM actif à la fois.
+- La banque nécessite un accès HTTP (GitHub Pages ou serveur local) : elle n'est pas disponible en ouvrant le fichier par double-clic.
 - Les champs `category` et `difficulty` sont acceptés dans le JSON mais ne sont pas encore exploités dans l'interface (filtrage, affichage).
 
 ## Idées d'évolution
 
 - Filtrage des questions par catégorie ou difficulté.
-- Mode examen avec minuteur global et arrêt automatique.
-- Export du résultat (PDF ou image) et historique des QCM passés.
-- Bouton « voir uniquement les questions flaggées » pendant le passage du QCM.
