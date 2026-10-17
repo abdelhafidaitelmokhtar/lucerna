@@ -138,6 +138,24 @@
   ::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:99px; }
 
   .scrollx{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .print-only{ display:none; }
+  @media print{
+    :root, :root[data-theme="dark"], :root:not([data-theme="light"]){
+      --ink:#16211D; --ink-soft:#4A5850; --ink-faint:#7C887F;
+      --paper:#FFFFFF; --surface:#FFFFFF; --surface-soft:#F1F3EE;
+      --border:rgba(22,33,29,0.18); --border-strong:rgba(22,33,29,0.3);
+      --accent:#2F6F5E; --accent-soft:#DCEBE4; --accent-strong:#1F5445;
+      --gold:#C98A2B; --gold-soft:#F4E7CC; --gold-ink:#3A2A0C;
+      --success:#2F7A54; --success-soft:#DBEFE1;
+      --danger:#B24632; --danger-soft:#F6DEDA;
+      color-scheme: light;
+    }
+    body{ background:#fff !important; }
+    .topbar, .btn, .modal-back, .screen-only{ display:none !important; }
+    .print-only{ display:block !important; }
+    .card{ box-shadow:none !important; break-inside:avoid; }
+    .wrap{ max-width:none !important; padding-bottom:0 !important; }
+  }
   @media (max-width: 720px){
     .hide-mobile{ display:none !important; }
   }
@@ -276,6 +294,7 @@ window.LucernaCore = (function(){
     showConfirmSubmit: false,
     showConfirmAbandon: false,
     showConfirmClearHistory: false,
+    printing: false,           // render the full correction for window.print()
     showJsonHelp: false,
     hasSavedSession: false,
     navOpen: false
@@ -1074,7 +1093,8 @@ window.LucernaCore = (function(){
       '</svg>';
 
     return topbar() +
-    '<div class="wrap" style="padding:48px 20px 30px;max-width:760px;text-align:center;">' +
+    printHeader(r) +
+    '<div class="wrap screen-only" style="padding:48px 20px 30px;max-width:760px;text-align:center;">' +
       '<div class="status-pill" style="background:var(--accent-soft);color:var(--accent-strong);">Résultat</div>' +
       '<div style="position:relative;width:180px;height:180px;margin:22px auto 8px;">' + ring +
         '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">' +
@@ -1090,11 +1110,30 @@ window.LucernaCore = (function(){
       '</div>' +
       '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
         '<button class="btn btn-primary" data-action="show-correction">Voir la correction détaillée</button>' +
+        '<button class="btn btn-ghost" data-action="print">Imprimer / PDF</button>' +
         '<button class="btn btn-ghost" data-action="retake">Recommencer ce QCM</button>' +
         '<button class="btn btn-ghost" data-action="new-quiz">Importer un autre QCM</button>' +
       '</div>' +
     '</div>' +
     renderCorrection();
+  }
+
+  function printHeader(r){
+    var exam = state.options.exam
+      ? ' · Examen' + (state.timeExpired ? ' — Temps écoulé' : '') + ' · Temps utilisé : ' + Core.formatDuration(usedMs())
+      : '';
+    return '<div class="print-only wrap" id="print-header" style="padding:0 20px 18px;">' +
+      '<h1 class="display" style="font-size:1.6rem;margin:0 0 4px;">' + esc(state.quiz.title) + '</h1>' +
+      '<div>' + esc(formatDate(state.submittedAt || Date.now())) + exam + '</div>' +
+      '<div style="font-size:1.2rem;font-weight:800;margin-top:8px;">Score : ' + r.correct + '/' + r.total + ' — ' + r.pct + ' %</div>' +
+      '<div>' + r.correct + ' correctes · ' + r.incorrect + ' incorrectes · ' + r.unanswered + ' sans réponse</div>' +
+    '</div>';
+  }
+
+  function printResults(){
+    state.printing = true; render();
+    try{ window.print(); }
+    finally{ state.printing = false; render(); }
   }
 
   function usedMs(){
@@ -1121,7 +1160,7 @@ window.LucernaCore = (function(){
   function renderCorrection(){
     var qs = questions();
     var filtered = qs.map(function(q,i){ return {q:q,i:i}; }).filter(function(o){
-      if(state.correctionFilter === "incorrect"){
+      if(state.correctionFilter === "incorrect" && !state.printing){
         return isAnswered(o.q) ? !isCorrectAnswer(o.q) : true;
       }
       return true;
@@ -1156,7 +1195,7 @@ window.LucernaCore = (function(){
         return '<div style="color:var(--success);font-weight:700;">' + choiceLabel(id) + ' ✓</div>';
       }).join("") + '</div>';
 
-      return '<div class="card" style="padding:24px;text-align:left;">' +
+      return '<div class="card correction-item" style="padding:24px;text-align:left;">' +
         '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;">' +
         '<div style="color:var(--ink-soft);font-weight:800;font-size:0.85rem;">Question ' + (i+1) + '</div>' + statusPill + '</div>' +
         '<h3 style="font-size:1.1rem;font-weight:700;margin:0 0 16px;font-family:inherit;">' + esc(q.question) + '</h3>' +
@@ -1267,6 +1306,7 @@ window.LucernaCore = (function(){
       case "abandon-exam": state.showConfirmAbandon = true; render(); break;
       case "cancel-abandon": state.showConfirmAbandon = false; render(); break;
       case "confirm-abandon": doSubmit(); break;
+      case "print": printResults(); break;
       case "clear-history": state.showConfirmClearHistory = true; render(); break;
       case "cancel-clear-history": state.showConfirmClearHistory = false; render(); break;
       case "confirm-clear-history": saveHistory([]); state.showConfirmClearHistory = false; render(); break;
