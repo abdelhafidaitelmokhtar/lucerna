@@ -80,6 +80,15 @@
 
   .exam-timer{ font-variant-numeric:tabular-nums; font-weight:800; font-size:0.9rem; padding:5px 11px; border-radius:999px; background:var(--accent-soft); color:var(--accent-strong); white-space:nowrap; }
   .exam-timer.warn{ background:var(--danger-soft); color:var(--danger); }
+  .bank-score{ margin-top:6px; font-size:0.82rem; font-weight:700; color:var(--ink-soft); }
+  .history-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 0; border-bottom:1px solid var(--border); }
+  .history-row:last-child{ border-bottom:none; }
+  .history-charts{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; margin-bottom:14px; }
+  .history-chart{ width:100%; height:auto; display:block; }
+  .chart-grid{ stroke:var(--border); stroke-width:1; }
+  .chart-label{ fill:var(--ink-faint); font-size:9px; font-family:inherit; }
+  .chart-line{ fill:none; stroke:var(--accent); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+  .chart-dot{ fill:var(--surface); stroke:var(--accent); stroke-width:2; }
   .launch-options{ background:var(--surface-soft); border-radius:var(--radius-m); padding:14px 16px; margin-bottom:18px; }
   .opt-row{ display:flex; align-items:center; gap:10px; padding:5px 0; cursor:pointer; font-weight:600; }
   .opt-row input{ width:18px; height:18px; accent-color:var(--accent); }
@@ -212,8 +221,17 @@ window.LucernaCore = (function(){
     return -1;
   }
 
+  function summarize(attempts, quizId){
+    var mine = attempts.filter(function(a){ return a.quizId === quizId; });
+    if(!mine.length) return { count: 0, last: null, best: null };
+    var last = mine.reduce(function(acc, a){ return a.date > acc.date ? a : acc; });
+    var best = Math.max.apply(null, mine.map(function(a){ return a.pct; }));
+    return { count: mine.length, last: last.pct, best: best };
+  }
+
   return { shuffle: shuffle, choiceLetter: choiceLetter, prepareQuiz: prepareQuiz, isCorrect: isCorrect,
-    parseDuration: parseDuration, formatClock: formatClock, formatDuration: formatDuration, nextIndex: nextIndex };
+    parseDuration: parseDuration, formatClock: formatClock, formatDuration: formatDuration, nextIndex: nextIndex,
+    summarize: summarize };
 })();
 </script>
 <script>
@@ -228,6 +246,8 @@ window.LucernaCore = (function(){
   var LEGACY_STORAGE_KEY = "lucerna:quiz-session:v1";
   var THEME_KEY = "lucerna:theme";
   var TIMER_WARN_MS = 5 * 60000;
+  var HISTORY_KEY = "lucerna:history:v1";
+  var HISTORY_MAX = 500;
   function defaultOptions(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, durationMin:90 }; }
   function defaultLaunch(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, hours:"1", minutes:"30" }; }
 
@@ -255,6 +275,7 @@ window.LucernaCore = (function(){
     bank: { status: "loading", items: [] },   // items: {file, quizId, quiz}
     showConfirmSubmit: false,
     showConfirmAbandon: false,
+    showConfirmClearHistory: false,
     showJsonHelp: false,
     hasSavedSession: false,
     navOpen: false
@@ -304,6 +325,32 @@ window.LucernaCore = (function(){
       localStorage.removeItem(LEGACY_STORAGE_KEY);
       return migrated;
     }catch(e){ return null; }
+  }
+
+  function loadHistory(){
+    try{
+      var list = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      return Array.isArray(list) ? list : [];
+    }catch(e){ return []; }
+  }
+  function saveHistory(list){
+    try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(-HISTORY_MAX))); }catch(e){}
+  }
+
+  function recordAttempt(){
+    if(state.recorded) return;
+    var id = state.quizId + "@" + state.startedAt;
+    var list = loadHistory();
+    if(!list.some(function(a){ return a.id === id; })){
+      var r = computeResults();
+      list.push({ id: id, quizId: state.quizId, title: state.quiz.title, date: state.submittedAt,
+        pct: r.pct, correct: r.correct, incorrect: r.incorrect, unanswered: r.unanswered, total: r.total,
+        exam: !!state.options.exam, timeExpired: state.timeExpired, usedMs: usedMs(),
+        shuffleQuestions: !!state.options.shuffleQuestions, shuffleChoices: !!state.options.shuffleChoices });
+      list.sort(function(a, b){ return a.date - b.date; });
+      saveHistory(list);
+    }
+    state.recorded = true;
   }
 
   function clearSaved(){
@@ -559,6 +606,7 @@ window.LucernaCore = (function(){
     state.submittedAt = Date.now();
     state.screen = "results";
     state.correctionFilter = "all";
+    recordAttempt();
     save(); render();
     window.scrollTo({top:0,behavior:"smooth"});
   }
@@ -666,6 +714,7 @@ window.LucernaCore = (function(){
       resumeBlock +
       renderBank() +
       preview +
+      renderHistory() +
       '<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center;margin-top:56px;" class="home-grid">' +
         '<div class="fade-in">' +
           '<div class="status-pill" style="background:var(--accent-soft);color:var(--accent-strong);margin-bottom:18px;">' + logo(14) + ' Votre propre QCM</div>' +
@@ -735,6 +784,7 @@ window.LucernaCore = (function(){
           '<div style="font-weight:800;font-size:1.05rem;">' + esc(it.quiz.title) + '</div>' +
           (it.quiz.description ? '<div style="color:var(--ink-soft);font-size:0.92rem;margin-top:4px;">' + esc(it.quiz.description) + '</div>' : '') +
           '<div style="color:var(--accent-strong);font-weight:700;font-size:0.85rem;margin-top:12px;">' + n + ' question' + (n > 1 ? 's' : '') + '</div>' +
+          bankScore(it.quizId) +
         '</button>';
       }).join("") + '</div>';
     }
@@ -742,6 +792,79 @@ window.LucernaCore = (function(){
       '<div class="status-pill" style="background:var(--accent-soft);color:var(--accent-strong);margin-bottom:14px;">' + logo(14) + ' Entraînement &amp; examens blancs</div>' +
       '<h1 id="bank-title" class="display" style="font-size:clamp(2rem,4vw,3rem);line-height:1.06;margin:0 0 18px;font-weight:600;">QCM disponibles</h1>' +
       body + '</section>';
+  }
+
+  function bankScore(quizId){
+    var s = Core.summarize(loadHistory(), quizId);
+    if(!s.count) return "";
+    return '<div class="bank-score">Dernier : ' + s.last + ' % · Meilleur : ' + s.best + ' %</div>';
+  }
+
+  function formatDate(ms){
+    return new Date(ms).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+  }
+
+  function historyChart(attempts){
+    var W = 320, H = 120, padL = 30, padR = 10, padT = 10, padB = 18;
+    var n = attempts.length;
+    var x = function(i){ return padL + (n === 1 ? 0 : i * (W - padL - padR) / (n - 1)); };
+    var y = function(pct){ return padT + (100 - pct) * (H - padT - padB) / 100; };
+    var grid = [0, 50, 100].map(function(v){
+      return '<line class="chart-grid" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>' +
+        '<text class="chart-label" x="' + (padL - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    }).join("");
+    var pts = attempts.map(function(a, i){ return x(i).toFixed(1) + "," + y(a.pct).toFixed(1); });
+    var dots = attempts.map(function(a, i){
+      return '<circle class="chart-dot" cx="' + x(i).toFixed(1) + '" cy="' + y(a.pct).toFixed(1) + '" r="3.5"><title>' + esc(formatDate(a.date)) + ' — ' + a.pct + ' %</title></circle>';
+    }).join("");
+    return '<svg class="history-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Évolution du score">' +
+      grid + '<polyline class="chart-line" points="' + pts.join(" ") + '"/>' + dots + '</svg>';
+  }
+
+  function renderHistory(){
+    var list = loadHistory();
+    if(!list.length) return "";
+    var recent = list.slice().sort(function(a, b){ return b.date - a.date; });
+    var rows = recent.map(function(a){
+      return '<div class="history-row">' +
+        '<div style="flex:1;min-width:160px;"><div style="font-weight:700;">' + esc(a.title) + '</div>' +
+        '<div style="color:var(--ink-soft);font-size:0.85rem;">' + esc(formatDate(a.date)) + '</div></div>' +
+        (a.exam ? '<span class="status-pill pill-flag">Examen</span>' : '') +
+        (a.timeExpired ? '<span class="status-pill pill-incorrect">Temps écoulé</span>' : '') +
+        '<div style="font-weight:800;min-width:110px;text-align:right;">' + a.pct + ' % <span style="color:var(--ink-soft);font-weight:600;">(' + a.correct + '/' + a.total + ')</span></div>' +
+      '</div>';
+    }).join("");
+    var byQuiz = {}, order = [];
+    list.forEach(function(a){
+      if(!byQuiz[a.quizId]){ byQuiz[a.quizId] = []; order.push(a.quizId); }
+      byQuiz[a.quizId].push(a);
+    });
+    var charts = order.filter(function(id){ return byQuiz[id].length >= 2; }).map(function(id){
+      var atts = byQuiz[id].slice().sort(function(a, b){ return a.date - b.date; });
+      return '<div class="card" style="padding:16px 18px;">' +
+        '<div style="font-weight:800;font-size:0.9rem;margin-bottom:8px;">' + esc(atts[atts.length - 1].title) + '</div>' +
+        historyChart(atts) + '</div>';
+    }).join("");
+    return '<section id="history" class="fade-in" style="margin-top:56px;" aria-labelledby="history-title">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">' +
+        '<h2 id="history-title" class="display" style="font-size:1.5rem;margin:0;font-weight:600;">Mes résultats</h2>' +
+        '<button class="btn btn-ghost btn-sm" data-action="clear-history">Effacer l\'historique</button>' +
+      '</div>' +
+      (charts ? '<div class="history-charts">' + charts + '</div>' : '') +
+      '<div class="card" style="padding:6px 18px;">' + rows + '</div>' +
+      '<p style="color:var(--ink-faint);font-size:0.8rem;margin:10px 0 0;">L\'historique est enregistré uniquement dans ce navigateur, sur cet appareil.</p>' +
+    '</section>' + clearHistoryModal();
+  }
+
+  function clearHistoryModal(){
+    if(!state.showConfirmClearHistory) return "";
+    return '<div class="modal-back" data-action="cancel-clear-history"><div class="modal fade-in" role="alertdialog" aria-modal="true">' +
+      '<h3 class="display" style="margin:0 0 8px;font-size:1.2rem;">Effacer l\'historique ?</h3>' +
+      '<p style="color:var(--ink-soft);margin:0 0 20px;">Toutes vos tentatives enregistrées seront supprimées. Cette action est irréversible.</p>' +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">' +
+      '<button class="btn btn-ghost" data-action="cancel-clear-history">Annuler</button>' +
+      '<button class="btn btn-danger" data-action="confirm-clear-history">Effacer</button>' +
+      '</div></div></div>';
   }
 
   function featureCard(title, text){
@@ -1144,6 +1267,9 @@ window.LucernaCore = (function(){
       case "abandon-exam": state.showConfirmAbandon = true; render(); break;
       case "cancel-abandon": state.showConfirmAbandon = false; render(); break;
       case "confirm-abandon": doSubmit(); break;
+      case "clear-history": state.showConfirmClearHistory = true; render(); break;
+      case "cancel-clear-history": state.showConfirmClearHistory = false; render(); break;
+      case "confirm-clear-history": saveHistory([]); state.showConfirmClearHistory = false; render(); break;
       case "show-correction": {
         var target = document.querySelector(".wrap:nth-of-type(2)");
         window.scrollTo({top: document.body.scrollHeight*0.32, behavior:"smooth"});
