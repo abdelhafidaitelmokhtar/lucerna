@@ -127,8 +127,88 @@
 <div id="app"></div>
 
 <script>
+/* ---------------------------------------------------------
+   CORE: pure helpers (no DOM, no state) — also used by tests
+--------------------------------------------------------- */
+window.LucernaCore = (function(){
+  "use strict";
+
+  function shuffle(arr, rand){
+    rand = rand || Math.random;
+    var out = arr.slice();
+    for(var i = out.length - 1; i > 0; i--){
+      var j = Math.floor(rand() * (i + 1));
+      var t = out[i]; out[i] = out[j]; out[j] = t;
+    }
+    return out;
+  }
+
+  function choiceLetter(i){ return String.fromCharCode(65+i); }
+
+  function prepareQuiz(quiz, opts, rand){
+    var copy = JSON.parse(JSON.stringify(quiz));
+    opts = opts || {};
+    if(opts.shuffleChoices){
+      copy.questions.forEach(function(q){ q.choices = shuffle(q.choices, rand); });
+    }
+    if(opts.shuffleQuestions){ copy.questions = shuffle(copy.questions, rand); }
+    return copy;
+  }
+
+  function isCorrect(selected, correctAnswers){
+    if(!selected || selected.length === 0) return false;
+    return selected.slice().sort().join("|") === correctAnswers.slice().sort().join("|");
+  }
+
+  function parseDuration(hours, minutes){
+    var parts = [hours, minutes].map(function(v){ return String(v === undefined || v === null ? "" : v).trim(); });
+    for(var i = 0; i < parts.length; i++){
+      if(parts[i] !== "" && !/^\d+$/.test(parts[i])){
+        return { ok: false, error: "Durée invalide : utilisez des nombres entiers." };
+      }
+    }
+    var total = (parseInt(parts[0] || "0", 10) * 60) + parseInt(parts[1] || "0", 10);
+    if(total < 1 || total > 600){
+      return { ok: false, error: "La durée doit être comprise entre 1 minute et 10 heures." };
+    }
+    return { ok: true, minutes: total };
+  }
+
+  function pad(n){ return n < 10 ? "0" + n : String(n); }
+
+  function formatClock(ms){
+    if(ms <= 0) return "0:00";
+    var s = Math.ceil(ms / 1000);
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return h > 0 ? h + ":" + pad(m) + ":" + pad(sec) : m + ":" + pad(sec);
+  }
+
+  function formatDuration(ms){
+    var s = Math.max(0, Math.round(ms / 1000));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    if(h > 0) return h + " h " + m + " min";
+    if(m > 0) return m + " min " + sec + " s";
+    return sec + " s";
+  }
+
+  function nextIndex(current, dir, allowed){
+    var sorted = allowed.slice().sort(function(a, b){ return a - b; });
+    if(dir > 0){
+      for(var i = 0; i < sorted.length; i++){ if(sorted[i] > current) return sorted[i]; }
+    } else {
+      for(var j = sorted.length - 1; j >= 0; j--){ if(sorted[j] < current) return sorted[j]; }
+    }
+    return -1;
+  }
+
+  return { shuffle: shuffle, choiceLetter: choiceLetter, prepareQuiz: prepareQuiz, isCorrect: isCorrect,
+    parseDuration: parseDuration, formatClock: formatClock, formatDuration: formatDuration, nextIndex: nextIndex };
+})();
+</script>
+<script>
 (function(){
   "use strict";
+  var Core = window.LucernaCore;
 
   /* ---------------------------------------------------------
      DEMO QUIZ
@@ -158,18 +238,26 @@
   /* ---------------------------------------------------------
      STATE
   --------------------------------------------------------- */
-  var STORAGE_KEY = "lucerna:quiz-session:v1";
+  var STORAGE_KEY = "lucerna:quiz-session:v2";
+  var LEGACY_STORAGE_KEY = "lucerna:quiz-session:v1";
   var THEME_KEY = "lucerna:theme";
+  function defaultOptions(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, durationMin:90 }; }
 
   var state = {
     screen: "home",           // home | quiz | review | results
     quiz: null,
+    quizId: null,
+    options: defaultOptions(),
     current: 0,
     answers: {},               // qid -> array of choice ids (as strings)
     flags: {},                 // qid -> bool
     visited: {},                // qid -> bool
     startedAt: null,
+    deadline: null,            // exam mode: absolute end time (ms)
     submittedAt: null,
+    timeExpired: false,
+    recorded: false,           // attempt already written to history
+    flagFilter: false,
     correctionFilter: "all",   // all | incorrect
     error: null,
     importPreview: null,       // {quiz} pending confirmation on home
@@ -185,18 +273,43 @@
     if(!state.quiz){ return; }
     try{
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        quiz: state.quiz, current: state.current, answers: state.answers,
+        quiz: state.quiz, quizId: state.quizId, options: state.options,
+        current: state.current, answers: state.answers,
         flags: state.flags, visited: state.visited, startedAt: state.startedAt,
-        submittedAt: state.submittedAt, screen: state.screen
+        deadline: state.deadline, submittedAt: state.submittedAt, screen: state.screen,
+        timeExpired: state.timeExpired, recorded: state.recorded, flagFilter: state.flagFilter
       }));
     }catch(e){ /* storage full or unavailable: fail silently */ }
+  }
+
+  function migrateV1(old){
+    old.quiz.questions.forEach(function(q){
+      q.choices.forEach(function(c, i){ if(!c.origLetter) c.origLetter = Core.choiceLetter(i); });
+    });
+    return {
+      quiz: old.quiz, quizId: "import:" + old.quiz.title, options: defaultOptions(),
+      current: old.current || 0, answers: old.answers || {}, flags: old.flags || {},
+      visited: old.visited || {}, startedAt: old.startedAt || null, deadline: null,
+      submittedAt: old.submittedAt || null, screen: old.screen,
+      timeExpired: false, recorded: old.screen === "results", flagFilter: false
+    };
   }
 
   function loadSavedSession(){
     try{
       var raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return null;
-      return JSON.parse(raw);
+      if(raw){
+        var s = JSON.parse(raw);
+        return (s && s.quiz && Array.isArray(s.quiz.questions)) ? s : null;
+      }
+      var legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if(!legacy) return null;
+      var old = JSON.parse(legacy);
+      if(!old || !old.quiz || !Array.isArray(old.quiz.questions)) return null;
+      var migrated = migrateV1(old);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return migrated;
     }catch(e){ return null; }
   }
 
@@ -265,7 +378,7 @@
         return {
           id: q.id, question: q.question, image: q.image || null,
           category: q.category || null, difficulty: q.difficulty || null,
-          choices: q.choices.map(function(c){ return { id: String(c.id), text: c.text }; }),
+          choices: q.choices.map(function(c, i){ return { id: String(c.id), text: c.text, origLetter: Core.choiceLetter(i) }; }),
           correctAnswers: q.correctAnswers.map(String),
           explanation: q.explanation || null
         };
@@ -288,11 +401,7 @@
     return { total: qs.length, answered: answered, unanswered: qs.length-answered, flagged: flagged };
   }
   function isCorrectAnswer(q){
-    var sel = state.answers[qid(q)] || [];
-    if(sel.length === 0) return false;
-    var correct = q.correctAnswers.slice().sort().join("|");
-    var selSorted = sel.slice().sort().join("|");
-    return correct === selSorted;
+    return Core.isCorrect(state.answers[qid(q)] || [], q.correctAnswers);
   }
   function computeResults(){
     var qs = questions(); var correct=0, incorrect=0, unanswered=0;
@@ -317,7 +426,9 @@
 
   function startQuiz(quiz){
     state.quiz = quiz; state.current = 0; state.answers = {}; state.flags = {};
+    state.quizId = "import:" + quiz.title; state.options = defaultOptions();
     state.visited = {}; state.startedAt = Date.now(); state.submittedAt = null;
+    state.deadline = null; state.timeExpired = false; state.recorded = false; state.flagFilter = false;
     state.screen = "quiz"; state.importPreview = null; state.error = null;
     var first = quiz.questions[0]; if(first) state.visited[qid(first)] = true;
     save(); render();
@@ -325,9 +436,14 @@
 
   function resumeSession(saved){
     state.quiz = saved.quiz; state.current = saved.current || 0;
+    state.quizId = saved.quizId || ("import:" + saved.quiz.title);
+    state.options = saved.options || defaultOptions();
     state.answers = saved.answers || {}; state.flags = saved.flags || {};
     state.visited = saved.visited || {}; state.startedAt = saved.startedAt || Date.now();
+    state.deadline = saved.deadline || null;
     state.submittedAt = saved.submittedAt || null;
+    state.timeExpired = !!saved.timeExpired; state.recorded = !!saved.recorded;
+    state.flagFilter = !!saved.flagFilter;
     state.screen = saved.screen === "results" ? "results" : "quiz";
     render();
   }
@@ -542,7 +658,7 @@
   /* ---------------------------------------------------------
      RENDER: QUIZ
   --------------------------------------------------------- */
-  function choiceLetter(i){ return String.fromCharCode(65+i); }
+  var choiceLetter = Core.choiceLetter;
 
   function renderQuestionCard(q){
     var multi = isMulti(q);
