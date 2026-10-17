@@ -1,0 +1,2372 @@
+{
+  "title": "CCDV-F Exam Practice Questions",
+  "description": "91 questions with answers and explanations",
+  "questions": [
+    {
+      "id": 1,
+      "question": "You are starting a new Claude application and have a small set of well-labeled examples that demonstrate the desired output format. You want to use these examples to guide Claude’s behavior. How would you guide the application’s behavior?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Embed the examples in a database and retrieve them at runtime as reference material for the team."
+        },
+        {
+          "id": "B",
+          "text": "Use zero-shot prompting and rely on the model’s general capability to produce the desired output format consistently across all incoming requests."
+        },
+        {
+          "id": "C",
+          "text": "Train a custom model on the labeled examples before deployment so that the application does not need to include the examples in any prompt during operation."
+        },
+        {
+          "id": "D",
+          "text": "Use multi-shot prompting by including the labeled examples in the prompt so Claude can match the desired output format on each request."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Multi-shot (few-shot) prompting puts the labeled examples directly in the prompt, so Claude can imitate the demonstrated output format on every request. Why the others are wrong: A. A database of examples is just storage; unless the examples reach the prompt, Claude never sees them. B. Zero-shot prompting ignores the available examples, so format consistency is weaker. C. Training a custom model for a small example set is heavy, slow and unnecessary; in-prompt examples work well."
+    },
+    {
+      "id": 2,
+      "question": "Your Claude application’s content policy specifies categories of content it should not produce under any circumstance. The application currently has no mechanism to enforce this policy, and content matching these categories is appearing in the application’s output. How would you enforce the content policy?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Enhance the system prompt to contain explicit instructions for the categories to avoid, complete with examples of each category. Treat the strengthened prompt as the primary enforcement mechanism for the application’s content policy across all responses."
+        },
+        {
+          "id": "B",
+          "text": "Remove the content policy entirely and let any output reach users during normal operation, accepting whatever content the application produces in response to incoming traffic."
+        },
+        {
+          "id": "C",
+          "text": "Add deterministic output filtering that checks responses against the content policy before they reach users."
+        },
+        {
+          "id": "D",
+          "text": "Move enforcement to users by asking them to report content policy violations after the violating content has already reached them in the application’s responses."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: A hard content policy needs deterministic enforcement. Output filtering checks every response against the policy before users see it, regardless of model behavior. Why the others are wrong: A. Prompt instructions are probabilistic and can be bypassed; they cannot be the primary enforcement mechanism. B. Removing the policy abandons the requirement altogether. D. Relying on user reports only acts after harmful content has already been delivered."
+    },
+    {
+      "id": 3,
+      "question": "A new Claude model release includes performance improvements for several reasoning tasks but has changed the format of its responses to system prompts that use multi-section instructions. Your application uses multi-section system prompts heavily. Initial evaluation on the application’s actual workload shows the new model performs 8 percent better on reasoning tasks but produces malformed output on roughly 3 percent of requests because of the format change. The team is debating whether to upgrade. How would you decide?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Upgrade and add a downstream validation step that catches the 3 percent malformed output before it reaches users, treating the validation step as the team’s mitigation for the format change."
+        },
+        {
+          "id": "B",
+          "text": "Adapt the application’s system prompt to the new model’s format expectations and re-evaluate, then upgrade only if the adapted prompt eliminates the malformed output while preserving the reasoning improvements."
+        },
+        {
+          "id": "C",
+          "text": "Stay on the previous model permanently to avoid the malformed output rate and any future format changes that subsequent model releases might introduce in the application."
+        },
+        {
+          "id": "D",
+          "text": "Upgrade immediately, because the 8 percent reasoning improvement outweighs the 3 percent malformed output rate across the application’s typical request distribution."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Adapting the prompt to the new model and re-evaluating tries to keep the 8% reasoning gain while eliminating the 3% malformed output; upgrade only if both goals are met. Why the others are wrong: A. A validation step only catches failures after the fact and leaves 3% of requests failing instead of fixing the cause. C. Staying on the old model permanently forgoes improvements and only postpones the same adaptation work. D. Upgrading immediately ships a known 3% failure rate without trying to fix it."
+    },
+    {
+      "id": 4,
+      "question": "Your team’s Claude application has been in production for a year, and the team has decided to formalize its testing strategy. Currently, the team writes ad-hoc tests for individual features but has no overall testing approach. What testing approach would you formalize?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Adopt a test-driven development practice where unit tests are written before each feature is implemented and must pass before code is merged."
+        },
+        {
+          "id": "B",
+          "text": "Define unit tests for individual functions, integration tests for the Claude integration, and end-to-end tests for critical user flows, applied consistently across the codebase."
+        },
+        {
+          "id": "C",
+          "text": "Continue writing ad-hoc tests as features ship and introduce a peer review step to ensure each test adequately covers the feature being released."
+        },
+        {
+          "id": "D",
+          "text": "Define a single testing approach that uses end-to-end tests and apply it consistently across all new features as they are added to the codebase."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: A layered strategy (unit, integration and end-to-end tests) covers individual functions, the Claude integration and critical user flows consistently. Why the others are wrong: A. TDD is a development practice, not a complete testing strategy; it does not cover integration or end-to-end needs. C. Continuing ad-hoc tests with peer review does not create an overall approach. D. End-to-end tests alone are slow, brittle and give poor fault isolation."
+    },
+    {
+      "id": 5,
+      "question": "Your Claude application makes high-volume API calls during business hours and very few calls overnight. The team is concerned about staying within rate limits during peak hours and wants to understand how the Claude API enforces those limits. How would you proceed?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Examine the peak-hour request patterns in your application logs and smooth traffic by distributing requests more evenly across the business-hours window."
+        },
+        {
+          "id": "B",
+          "text": "Assess the average payload size of current API calls and consolidate requests where possible to reduce the total number of calls made during peak hours."
+        },
+        {
+          "id": "C",
+          "text": "Review the API documentation for streaming endpoints and evaluate whether migrating peak-hour calls to streaming reduces exposure to rate limit enforcement."
+        },
+        {
+          "id": "D",
+          "text": "Identify the rate limits, design the application to stay within them during peak hours, and use exponential backoff when limits are reached."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: You should know the actual rate limits, design to stay within them at peak, and use exponential backoff when a limit is hit (HTTP 429). Why the others are wrong: A. Smoothing traffic helps, but without knowing the limits or handling 429 errors the design is incomplete. B. Consolidating requests does not account for how limits are enforced (requests and tokens per minute). C. Streaming changes how responses are delivered, not how rate limits are enforced."
+    },
+    {
+      "id": 6,
+      "question": "You are designing a Claude application that will require structured JSON output for downstream processing. The output schema is well-defined, and downstream systems will reject malformed JSON. Your application design would ...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "avoid structured output and use free-form text everywhere instead, on the grounds that free-form text is more flexible and handles edge cases better than structured schemas."
+        },
+        {
+          "id": "B",
+          "text": "structure the prompt to request output in a schema that is described in plain English, with downstream systems parsing whatever shape Claude produces."
+        },
+        {
+          "id": "C",
+          "text": "define a clear schema and structure the prompt to request output in that schema, with downstream systems handling any validation needed."
+        },
+        {
+          "id": "D",
+          "text": "define a clear schema, structure the prompt to request output in that schema, and validate Claude’s output against the schema before passing it downstream."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Defining a clear schema, prompting for it, and validating the output before passing it downstream is the only option that protects systems that reject malformed JSON. Why the others are wrong: A. Free-form text gives up the structure downstream systems require. B. A plain-English schema with downstream parsing of 'whatever shape' is unreliable. C. Leaving validation to downstream systems pushes failures to where they are most costly."
+    },
+    {
+      "id": 7,
+      "question": "Your Claude application produces good responses for typical inputs but struggles with edge cases. You have several labeled examples of edge-case inputs and the desired response for each. You want to use these examples to improve the model's handling of edge cases. What is the best way to use these examples?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Embed the examples in a database for the model to find during inference."
+        },
+        {
+          "id": "B",
+          "text": "Train a custom model on the edge-case examples and deploy that custom model in place of the team’s current Claude integration."
+        },
+        {
+          "id": "C",
+          "text": "Add the labeled edge-case examples to the prompt as few-shot examples so the model can learn the pattern."
+        },
+        {
+          "id": "D",
+          "text": "Tell users to avoid submitting the edge-case inputs to the application by adding warnings in the application’s user interface."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Adding labeled edge-case examples to the prompt as few-shot examples teaches Claude the desired handling with no retraining. Why the others are wrong: A. A database does nothing unless its content is retrieved and put into the prompt. B. Training a custom model is disproportionate for a few examples and replaces the Claude integration. D. Warning users avoids the problem instead of improving the model's behavior."
+    },
+    {
+      "id": 8,
+      "question": "The team is debating whether to build a new capability as a custom tool or to use an existing built-in tool that nearly covers the use case but lacks one specific feature. How would you decide?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Review the built-in tool’s documentation and assess whether its existing capabilities are sufficient to cover the use case without any modification or extension."
+        },
+        {
+          "id": "B",
+          "text": "Identify whether the team has previously built similar custom tools and use those precedents to determine which approach is more consistent with the existing codebase."
+        },
+        {
+          "id": "C",
+          "text": "Examine the custom tool option by scoping the implementation effort and determining whether the additional flexibility justifies the development and maintenance cost."
+        },
+        {
+          "id": "D",
+          "text": "Evaluate whether the missing feature can be addressed by extending the built-in tool or warrants a custom tool, then choose accordingly."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: The deciding question is whether the missing feature can be handled by extending the built-in tool or genuinely needs a custom tool; that evaluation drives the choice. Why the others are wrong: A. Only checking whether the built-in tool is sufficient as-is ignores the 'nearly covers' situation and the extension option. B. Past precedent is about consistency, not about whether the tool fits this use case. C. Looking only at the custom option ignores the cheaper path of extending the built-in tool."
+    },
+    {
+      "id": 9,
+      "question": "Your Claude agent’s hooks are currently triggered for every action, which slows down the agent significantly even when actions pose no risk. The team wants to scope hooks more carefully. How would you scope the hooks?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Replace hooks with system prompt instructions on the grounds that prompt instructions can produce the same enforcement effect that hooks produce on the agent’s actions."
+        },
+        {
+          "id": "B",
+          "text": "Scope hooks to only the high-risk actions, such as destructive operations or sensitive data access, and remove hooks from low-risk actions to balance safety with performance."
+        },
+        {
+          "id": "C",
+          "text": "Disable all hooks while the team re-scopes them, treating the period of no hook enforcement as a temporary state during the re-scoping work."
+        },
+        {
+          "id": "D",
+          "text": "Disable the agent during peak hours so the hook overhead does not slow the application down during the busiest periods of the day across the application’s operation."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Hooks should be scoped to high-risk actions (destructive operations, sensitive data), keeping safety where it matters and removing overhead elsewhere. Why the others are wrong: A. Prompt instructions are not deterministic enforcement; they cannot replace hooks. C. Disabling all hooks, even temporarily, removes protection for risky actions. D. Disabling the agent at peak hours removes the application's value instead of fixing the scoping."
+    },
+    {
+      "id": 10,
+      "question": "You are running Claude Code as part of an automated continuous integration pipeline. The pipeline needs Claude Code to execute a set of well-defined tasks without prompting for confirmation, and the output needs to be captured for downstream processing. How would you configure the pipeline?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Disable Claude Code’s confirmation prompts globally across all environments so the pipeline runs without interruption from any prompt."
+        },
+        {
+          "id": "B",
+          "text": "Run Claude Code in headless mode with the required permissions configured in settings.json and capture its output for downstream processing."
+        },
+        {
+          "id": "C",
+          "text": "Replace Claude Code with a different tool that does not require any configuration to operate without confirmation prompts in the pipeline."
+        },
+        {
+          "id": "D",
+          "text": "Run Claude Code in interactive mode and have a developer manually approve every confirmation prompt while the pipeline executes its tasks."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Headless (non-interactive) mode with permissions pre-configured in settings.json runs tasks without prompts in a controlled way, and its output can be captured for downstream steps. Why the others are wrong: A. Disabling confirmations globally across all environments is unsafe. C. Replacing the tool is unnecessary; Claude Code already supports headless operation. D. Manual approval defeats the purpose of automation in CI."
+    },
+    {
+      "id": 11,
+      "question": "The Anthropic API deprecated a request parameter that your Claude application uses in approximately 40 places across the codebase. The deprecation notice gives a six-month window before the parameter is removed and recommends a replacement parameter with slightly different semantics. You would respond to the deprecation by ...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "swapping all 40 call sites in a single change right away to prevent drawn-out migration work that will delay ongoing functioning."
+        },
+        {
+          "id": "B",
+          "text": "migrating all 40 call sites in a single change near the removal date to ensure the deprecated parameter continues to work as long as possible."
+        },
+        {
+          "id": "C",
+          "text": "adding regression tests to cover the parameter’s behavior, then migrating call sites in batches that you validate against regression tests."
+        },
+        {
+          "id": "D",
+          "text": "keeping the deprecated parameter in place while writing a wrapper function around it to insulate the rest of the codebase from the eventual change."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Regression tests lock in current behavior, then migrating in validated batches is safe and finishes well within the six-month window despite the different semantics. Why the others are wrong: A. A single immediate change across 40 call sites is risky given the slightly different semantics. B. Waiting until near the removal date leaves no time to fix problems. D. A wrapper around a deprecated parameter only postpones the migration."
+    },
+    {
+      "id": 12,
+      "question": "Your Claude application’s API keys are stored in a secrets manager. The team is debating whether the same key should be used in development, staging, and production environments. How would you handle the keys across environments?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Use a single development key everywhere on the grounds that production keys are too risky to deploy across the application's three environments during normal operation."
+        },
+        {
+          "id": "B",
+          "text": "Use distinct keys for each environment so a compromise in one environment does not affect the others during normal operation across the application’s lifecycle."
+        },
+        {
+          "id": "C",
+          "text": "Rotate the same key across environments at random intervals on the grounds that random rotation provides isolation between environments without requiring distinct keys."
+        },
+        {
+          "id": "D",
+          "text": "Use the same key across all environments for simplicity and treat the propagation of any compromise as a known operational tradeoff for the team's key management approach."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Distinct keys per environment limit the blast radius: a leak in development cannot affect production, and keys can be revoked independently. Why the others are wrong: A. One shared key everywhere maximizes exposure, and the stated reasoning is backwards. C. Random rotation of a shared key does not provide isolation between environments. D. Sharing one key makes any compromise propagate everywhere; that is a risk, not an acceptable tradeoff."
+    },
+    {
+      "id": 13,
+      "question": "Your team’s Claude agent has accumulated several customizations that bypass the SDK’s defaults, including custom history management, retry logic, and error handling. A new team member has proposed reverting all the customizations to maintain the codebase more easily. The tech lead disagrees and says each customization was added for a reason. How would you advise the team?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Revert all customizations to the SDK’s defaults to standardize the codebase."
+        },
+        {
+          "id": "B",
+          "text": "Decide on each customization individually based on its original reason and the SDK’s current capabilities."
+        },
+        {
+          "id": "C",
+          "text": "Keep all customizations, trusting that the tech lead’s original reasoning is still valid."
+        },
+        {
+          "id": "D",
+          "text": "Migrate the agent off the SDK and rebuild it with a custom loop."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Each customization should be evaluated on its original reason and on whether the SDK now covers it; keep what is still needed and drop what is obsolete. Why the others are wrong: A. Reverting everything may reintroduce the problems the customizations solved. C. Keeping everything on trust leaves unnecessary maintenance burden. D. Rebuilding off the SDK is a drastic, costly step with no justification."
+    },
+    {
+      "id": 14,
+      "question": "A Claude application is occasionally refusing to answer questions that should be in scope, including questions the application has answered correctly in the past. You want to investigate. What is the first step of your investigation?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Identify which questions have been refused and compare them against previously answered questions to determine what changed between the successful and refused interactions."
+        },
+        {
+          "id": "B",
+          "text": "Test whether removing or adjusting those instructions resolves the behavior."
+        },
+        {
+          "id": "C",
+          "text": "Assess whether the refusals cluster around specific input patterns, question types, or time periods by analyzing the distribution of refused requests in the logs."
+        },
+        {
+          "id": "D",
+          "text": "Examine traces of the refused requests to identify what triggers the refusal, whether input patterns, system prompt content, or other context."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: The first step is to examine traces of the refused requests to see what triggers the refusal (input patterns, system prompt content, context). Evidence comes before hypotheses. Why the others are wrong: A. Comparing to answered questions is useful, but only after you have the evidence from the traces. B. Changing instructions before understanding the cause is guessing. C. Aggregate log analysis is a later step; traces show the actual trigger."
+    },
+    {
+      "id": 15,
+      "question": "Your Claude application processes 50-page legal contracts and produces summaries with citation references back to the source. The team is debating whether to send each contract whole or split into smaller pieces. The contracts fit within Claude’s context window. Initial testing shows that whole- document processing produces summaries with stronger cross-section reasoning but occasionally drifts on citation accuracy in later sections. Chunked processing produces stronger citation accuracy per chunk but loses cross-section reasoning. The team has not decided which property matters more. How would you guide the team’s decision?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Assess the cost and latency implications of both approaches against the application’s performance requirements before recommending which processing strategy to adopt."
+        },
+        {
+          "id": "B",
+          "text": "Examine the use cases where cross-section reasoning failures occur and assess whether whole-document processing meets the application’s accuracy requirements across a representative sample of contracts."
+        },
+        {
+          "id": "C",
+          "text": "Review the citation accuracy results from chunked processing and determine whether the loss of cross-section reasoning produces summaries that still meet the application’s quality bar."
+        },
+        {
+          "id": "D",
+          "text": "Identify which property matters more for the application’s actual use case and let that decision drive the chunking approach, then validate the choice against representative contracts."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Deciding which property (cross-section reasoning vs citation accuracy) matters more for the real use case should drive the approach, then validate on representative contracts. Why the others are wrong: A. Cost and latency are secondary until the quality priority is known. B. Testing only whole-document processing ignores the chunked alternative. C. Testing only chunked processing ignores the whole-document alternative."
+    },
+    {
+      "id": 16,
+      "question": "A teammate is reviewing the team’s threat model for a Claude application and has asked you to identify the categories of AI-specific threats that the model should cover. The teammate has already listed traditional web application threats and wants to know what additional categories apply to a Claude application. Which AI-specific threat categories would you add?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Supply chain attacks on the Claude SDK because the SDK itself is the only point of vulnerability that a Claude application introduces beyond traditional web application threats."
+        },
+        {
+          "id": "B",
+          "text": "Network-level denial of service and physical infrastructure attacks, because these categories cover the threats most likely to affect any Claude application in production."
+        },
+        {
+          "id": "C",
+          "text": "Cross-site scripting and SQL injection, because these traditional web application threats apply with equal weight to any application that uses Claude in any way."
+        },
+        {
+          "id": "D",
+          "text": "Prompt injection, data leakage from prompts or context, jailbreak attempts, and unsafe model output that bypasses application controls."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: AI-specific threats include prompt injection, data leakage through prompts or context, jailbreaks, and unsafe outputs that bypass application controls. Why the others are wrong: A. The SDK is not the only extra risk; the model's behavior introduces new threat classes. B. Denial of service and physical attacks are traditional, not AI-specific. C. XSS and SQL injection are traditional web threats, already on the teammate's list."
+    },
+    {
+      "id": 17,
+      "question": "A team has deployed a multi-agent system in which a primary agent decomposes user requests and delegates subtasks to three specialized subagents: one for data retrieval, one for analysis, and one for report generation. In production, the team observes that subagents are making redundant tool calls, occasionally exceeding token budgets, and sometimes producing outputs that contradict each other – all of which the primary agent passes along without catching. What is the most appropriate way to address these failures?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Strengthen the primary agent’s management layer to enforce per-subagent tool budgets, validate outputs against a defined schema before passing them forward, and establish explicit handoff contracts between stages."
+        },
+        {
+          "id": "B",
+          "text": "Give each subagent read access to the other subagents’ outputs so they can identify and resolve contradictions without routing back through the primary agent."
+        },
+        {
+          "id": "C",
+          "text": "Add retry logic to each subagent so that when a tool call fails, the subagent retries automatically before escalating – and configure each subagent to log its tool calls and outputs to a shared trace so the team can audit redundancy and contradictions after the fact."
+        },
+        {
+          "id": "D",
+          "text": "Collapse the three subagents into a single large-context model call that handles retrieval, analysis, and generation in one pass."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: The failures come from missing orchestration controls. Per-subagent budgets, schema validation of outputs and explicit handoff contracts fix redundancy, overruns and contradictions at the primary agent. Why the others are wrong: B. Cross-reading outputs adds coupling and does not control budgets or redundancy. C. Retries and logging address failures and after-the-fact audits, not the observed problems. D. Collapsing into one call discards the benefits of specialization."
+    },
+    {
+      "id": 18,
+      "question": "A teammate has asked you to explain when a Skill would be the right choice over an MCP server. The teammate is unsure how the two differ in practice when both can be reused across teams. How would you explain the distinction?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "A Skill is preferable for cross-team reuse because it loads more efficiently than an MCP server during normal operation in the team’s typical multi-team workloads."
+        },
+        {
+          "id": "B",
+          "text": "A Skill bundles prompts, scripts, and data into a package the model loads as a unit while a MCP server exposes resources, tools, and prompts through a standard client interface."
+        },
+        {
+          "id": "C",
+          "text": "A Skill and an MCP server are equivalent extension mechanisms that the team can use interchangeably for any reusable capability that needs to be accessible across teams."
+        },
+        {
+          "id": "D",
+          "text": "A Skill is the older mechanism and an MCP server is the newer one, so the team should prefer an MCP server for any reusable capability that the team builds going forward."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: A Skill bundles prompts, scripts and data into a package the model loads as a unit, while an MCP server exposes resources, tools and prompts via a standard client interface. Why the others are wrong: A. Efficiency claims do not capture the real difference. C. They are different mechanisms with different purposes. D. Neither is simply 'older' or 'newer'; the choice depends on the need."
+    },
+    {
+      "id": 19,
+      "question": "You are designing a Claude application that will process customer support tickets in two stages: a triage stage that classifies tickets and a response stage that drafts replies. The team is debating whether to use a single Claude call that handles both stages or separate Claude calls for each stage. How would you structure the application?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Use separate Claude calls for triage and response, because each stage has distinct inputs, outputs, and success criteria that benefit from focused prompts."
+        },
+        {
+          "id": "B",
+          "text": "Use a single Claude call for triage and then use a non-Claude rule-based system for response generation, on the grounds that rule-based systems are more reliable for drafting replies."
+        },
+        {
+          "id": "C",
+          "text": "Use multiple Claude calls in parallel that each draft a complete ticket reply, then have a fourth Claude call select the best one to send to the customer."
+        },
+        {
+          "id": "D",
+          "text": "Use a single Claude call for both stages, on the grounds that a single call is cheaper than multiple calls in any production Claude application setup."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Triage and response have different inputs, outputs and success criteria, so separate calls with focused prompts are easier to design, test and improve. Why the others are wrong: B. Rule-based drafting of replies is less capable and is not 'more reliable'. C. Several parallel full drafts plus a selector adds cost and complexity without need. D. A single call is not always cheaper, and it blurs two distinct tasks."
+    },
+    {
+      "id": 20,
+      "question": "Your Claude application uses structured output that is consumed by downstream code. The team wants to handle malformed or unexpected output gracefully so it does not crash downstream systems. The best choice for handling this issue would be to ...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "use the output the model produces and leave schema enforcement to a later phase of production after the application is more complete."
+        },
+        {
+          "id": "B",
+          "text": "apply defensive parsing to handle unexpected fields, missing values, and type mismatches that the downstream code might otherwise crash on."
+        },
+        {
+          "id": "C",
+          "text": "crash on any unexpected output and require manual recovery on affected requests the application handles during normal operation."
+        },
+        {
+          "id": "D",
+          "text": "silently drop any output that does not match expectations so downstream systems do not see the malformed output the application receives from the model."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Defensive parsing handles unexpected fields, missing values and type mismatches gracefully, so malformed output does not crash downstream code. Why the others are wrong: A. Postponing enforcement leaves the application exposed now. C. Crashing and manual recovery is the opposite of graceful handling. D. Silently dropping output hides failures and loses data."
+    },
+    {
+      "id": 21,
+      "question": "Your Claude agent has access to a tool that retrieves customer records. A teammate has noticed that the agent occasionally calls the tool with arguments the schema does not declare, and the tool's downstream service returns an error each time. The teammate proposes loosening the schema so the tool accepts whatever arguments the model produces. How would you respond?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Add a system prompt instruction telling the model to produce schema-conforming arguments, treating the prompt instruction as the primary mechanism for keeping the agent's tool calls valid."
+        },
+        {
+          "id": "B",
+          "text": "Keep the schema strict, validate arguments before dispatching, and return a structured error so the agent can retry."
+        },
+        {
+          "id": "C",
+          "text": "Remove the schema entirely and rely on the downstream service to reject invalid calls, treating the downstream service as the team's primary enforcement layer."
+        },
+        {
+          "id": "D",
+          "text": "Loosen the schema as the teammate proposed so the downstream service receives every call the agent makes during normal operation."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Keep the schema strict, validate before dispatching, and return a structured error so the agent can correct itself and retry. Why the others are wrong: A. A prompt instruction is not a reliable enforcement mechanism by itself. C. Removing the schema pushes all enforcement to the downstream service. D. Loosening the schema lets invalid calls through and guarantees more errors."
+    },
+    {
+      "id": 22,
+      "question": "A new agent your team built handles customer support tickets, but it routinely gets confused when a single ticket spans billing, shipping, and product issues. The agent often loses track of which sub-issue it has already addressed and revisits the same one. The team is considering architectural changes. What architectural change would you recommend?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Introduce an orchestrator agent that delegates billing, shipping, and product sub-issues to dedicated subagents."
+        },
+        {
+          "id": "B",
+          "text": "Switch to a deterministic workflow that handles billing, shipping, and product issues in a fixed sequence."
+        },
+        {
+          "id": "C",
+          "text": "Increase the size of the agent's context window so it can hold the full ticket history at once."
+        },
+        {
+          "id": "D",
+          "text": "Add detailed prompting that instructs the agent to track which sub-issues have been resolved and which remain."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: An orchestrator delegating billing, shipping and product sub-issues to dedicated subagents gives each issue its own focused context and prevents revisiting. Why the others are wrong: B. A fixed sequence is too rigid for tickets that vary and interleave. C. A bigger context window does not fix confusion about which sub-issue is done. D. More prompting does not change the architecture, which is the root of the problem."
+    },
+    {
+      "id": 23,
+      "question": "Your Claude application is hitting context window limits when processing long customer service transcripts. A junior developer suggests increasing the temperature parameter to fix the issue. How would you respond?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Increase the temperature parameter as the junior developer suggested and observe whether the context window issue resolves over the next several runs of the application in production."
+        },
+        {
+          "id": "B",
+          "text": "Adjust the temperature parameter together with the max_tokens parameter, treating the combined adjustment as the team's mechanism for managing context window pressure during longtranscript processing."
+        },
+        {
+          "id": "C",
+          "text": "Remove the system prompt entirely to make room for longer transcripts in each request, freeing up context window space the system prompt would otherwise consume."
+        },
+        {
+          "id": "D",
+          "text": "Explain that temperature controls sampling randomness and is unrelated to context capacity, then address the context issue through summarization or chunking."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Temperature controls sampling randomness and has nothing to do with context capacity. Summarization or chunking actually addresses the context limit. Why the others are wrong: A. Raising temperature will not change context usage. B. Neither temperature nor max_tokens reduces input size. C. Removing the system prompt removes needed guidance and saves little space."
+    },
+    {
+      "id": 24,
+      "question": "Your application uses the Messages API to handle multi-turn conversations. Each new turn resends the entire conversation history, and your token costs are growing as conversations get longer. You suspect there is a more efficient approach. How would you address this?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Use prompt caching to reuse the static portions of the conversation context across turns instead of paying for them at the normal input-token rate on every request the application sends."
+        },
+        {
+          "id": "B",
+          "text": "Switch to the Batch API for every turn so the per-call cost is reduced, treating the batch as the team's primary cost-control mechanism for multi-turn work."
+        },
+        {
+          "id": "C",
+          "text": "Truncate every conversation to the last two messages so that token usage stays low and costs remain predictable across the application's normal operation."
+        },
+        {
+          "id": "D",
+          "text": "Summarize each conversation after every turn and replace the full history with the summary on the next request, reducing token count at the cost of fidelity."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Prompt caching reuses the static, repeated parts of the conversation across turns at a lower cost. Why the others are wrong: B. The Batch API is for asynchronous bulk work, not interactive multi-turn conversations. C. Keeping only two messages loses important context. D. Summarizing every turn loses fidelity and is less efficient than caching."
+    },
+    {
+      "id": 25,
+      "question": "The Claude application your team built has grown over six months, and the prompt-handling code has accumulated duplication and tangled control flow. The functionality is working, but new features are getting harder to add. How would you address this?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Plan a refactoring pass to consolidate duplicated logic, separate concerns, and simplify control flow before adding new features."
+        },
+        {
+          "id": "B",
+          "text": "Refactor the prompt-handling code in small increments as part of each new feature ticket, treating the cleanup as a side effect of feature work."
+        },
+        {
+          "id": "C",
+          "text": "Continue adding features and plan a refactoring pass after the next two release cycles when the team has more bandwidth for internal work."
+        },
+        {
+          "id": "D",
+          "text": "Move all the prompt-handling code into a single large function to reduce the number of files developers have to navigate when reading the code."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Planning a refactoring pass first consolidates duplication, separates concerns and simplifies control flow, which makes new features easier to add. Why the others are wrong: B. Incremental cleanup inside feature tickets is unplanned and inconsistent. C. Delaying keeps the debt growing and slows every new feature. D. One large function worsens tangled control flow."
+    },
+    {
+      "id": 26,
+      "question": "You are designing a multi-step Claude workflow where some steps must reason without seeing the full prior conversation history. The team wants to keep specific context isolated to specific steps. The context engineering technique you would use is...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Augmenting the context with all available content at every step so each step has access to the entire prior history of the workflow during its reasoning."
+        },
+        {
+          "id": "B",
+          "text": "Using a single global prompt that applies to every step in the workflow no matter what each step is reasoning about during its run."
+        },
+        {
+          "id": "C",
+          "text": "Context isolation through subagents or multi-step agentic workflows that scope each step's context to only what the step needs."
+        },
+        {
+          "id": "D",
+          "text": "Embedding the full prior history in each step regardless of whether the step needs the prior history for its reasoning."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Context isolation, using subagents or multi-step workflows, scopes each step's context to only what it needs. Why the others are wrong: A. Passing all content to every step is the opposite of isolation. B. A single global prompt gives no step-specific context control. D. Embedding full history in each step breaks isolation."
+    },
+    {
+      "id": 27,
+      "question": "You are building an MCP server that exposes several internal data sources as MCP resources. The server needs to be deployed so multiple Claude applications can integrate with it. How would you approach the build and deployment?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Author the server with clearly defined resources, tools, and prompts, choose a communication pattern, and deploy to an accessible hosting environment."
+        },
+        {
+          "id": "B",
+          "text": "Build the MCP server with resource and tool definitions scoped to the first Claude application that needs it, and extend the definitions to additional applications as each integration is requested."
+        },
+        {
+          "id": "C",
+          "text": "Deploy the MCP server only on individual developer machines, with the Claude applications unable to reach the server outside each developer's machine."
+        },
+        {
+          "id": "D",
+          "text": "Bypass the MCP server and embed each data source directly in every Claude application that needs the data, with each application maintaining its own integration."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Define resources, tools and prompts clearly, choose a suitable communication pattern, and deploy to an accessible host so multiple applications can connect. Why the others are wrong: B. Scoping to one application makes the server hard to reuse. C. Local-only deployment prevents other applications from reaching the server. D. Embedding data sources in each application defeats the purpose of MCP."
+    },
+    {
+      "id": 28,
+      "question": "A teammate has submitted a pull request that adds a Claude-powered feature to your service. The code works, but the prompt and model selection are hard-coded inline, error handling is missing, and there are no tests for the integration. What would you request during code review?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Approve the pull request and add the missing pieces yourself in a follow-up commit so the teammate can move on to other work immediately."
+        },
+        {
+          "id": "B",
+          "text": "Approve the pull request as-is, on the grounds that the feature works in the happy path and the missing pieces can be added in follow-up commits."
+        },
+        {
+          "id": "C",
+          "text": "Request changes that move prompt and model configuration to a configurable location and add tests, treating the missing error handling as a follow-up release item."
+        },
+        {
+          "id": "D",
+          "text": "Request changes that move prompt and model configuration to a configurable location, add error handling for Claude API failures, and add tests for the integration."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: A complete review request covers configurable prompt and model settings, error handling for API failures, and integration tests. Why the others are wrong: A. Approving and fixing yourself bypasses the author's responsibility and the review process. B. Working on the happy path is not production-ready. C. Missing error handling is a core problem, not a follow-up item."
+    },
+    {
+      "id": 29,
+      "question": "You are setting up Claude Code for a new project repository. Your team has shared coding standards, preferred libraries, and project-specific context that every developer working on the repository should have available when they use Claude Code. How would you set this up?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Document the standards in a separate wiki page maintained outside the repository so the documentation stays decoupled from the source code."
+        },
+        {
+          "id": "B",
+          "text": "Configure Claude Code through environment variables that each developer sets on their own machine when they begin working in the repository."
+        },
+        {
+          "id": "C",
+          "text": "Initialize Claude Code in the repository and document the standards and project-specific context in a CLAUDE.md file at the repository root."
+        },
+        {
+          "id": "D",
+          "text": "Add the coding standards and project context to the repository's existing README file and direct developers to reference it when starting Claude Code sessions."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: A CLAUDE.md file at the repository root is loaded by Claude Code automatically and is shared with everyone through version control. Why the others are wrong: A. A separate wiki is not read automatically by Claude Code. B. Per-developer environment variables are inconsistent and not shared. D. A README is not automatically used as Claude Code context."
+    },
+    {
+      "id": 30,
+      "question": "You are reviewing an architectural diagram for a Claude-powered travel-booking system. The diagram shows a top-level component that interprets user requests and three subordinate components that handle flights, hotels, and ground transportation. The top-level component is responsible for routing each request, sequencing the subordinate components, and reconciling their outputs into a final itinerary. The diagram also shows that each subordinate component has its own tool list and own short conversation history that is not shared with the others. Which architectural pattern does this diagram most closely describe?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "A manager and supervisor pattern with isolated context per subagent, where the top-level agent coordinates specialized subagents that each maintain their own conversation history and tool list."
+        },
+        {
+          "id": "B",
+          "text": "A manager and supervisor pattern with shared context, where the top-level agent and the subagents all share a single conversation history that grows as the request flows through the system."
+        },
+        {
+          "id": "C",
+          "text": "A pipeline pattern, where each component processes the user request in sequence and passes the full conversation history along with the request to the next component in the pipeline."
+        },
+        {
+          "id": "D",
+          "text": "A retrieval-augmented pattern, where the top-level component retrieves relevant context from the subordinate components' indexed data stores before generating each response."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: A top-level agent routing, sequencing and reconciling specialized subagents that each keep their own tools and history is the manager/supervisor pattern with isolated context. Why the others are wrong: B. The diagram shows separate histories, not shared context. C. A pipeline passes work linearly and the full history; this design has central coordination. D. Nothing in the diagram involves retrieval from indexed stores."
+    },
+    {
+      "id": 31,
+      "question": "You are setting up the configuration management approach for a new Claude Code project. Your team will use CLAUDE.md files and settings.json files to control behavior, and you want to make sure changes are tracked and reviewable. The configuration management approach would...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Duplicate CLAUDE.md and settings.json files in multiple repositories to provide redundancy, on the grounds that a single source of truth is risky for project configuration."
+        },
+        {
+          "id": "B",
+          "text": "Version-control CLAUDE.md and settings.json files in a separate repository from the project's source code, so configuration evolves independently from the application code over time."
+        },
+        {
+          "id": "C",
+          "text": "Version-control CLAUDE.md alongside the project's source code and settings.json files in a separate repository from the project's source code."
+        },
+        {
+          "id": "D",
+          "text": "Version-control CLAUDE.md and settings.json files alongside the project's source code, with changes reviewed through standard pull request workflows the team applies."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Version-controlling both files with the source code and reviewing changes through pull requests keeps configuration tracked, reviewable and in sync with the code. Why the others are wrong: A. Duplicating files creates drift and inconsistency, not redundancy. B. A separate repository separates configuration from the code it governs and weakens review. C. Splitting CLAUDE.md and settings.json across repositories is inconsistent."
+    },
+    {
+      "id": 32,
+      "question": "Your agent is processing tasks that take 30 to 60 minutes to complete. Each task has well-defined intermediate checkpoints, and the team wants the agent to be able to resume from the most recent checkpoint if a process is interrupted. How would you implement this resumability?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Increase the agent's timeout to several hours so that interruptions become rare enough to ignore in practice."
+        },
+        {
+          "id": "B",
+          "text": "Apply a checkpointing pattern that persists the agent's intermediate state and reloads that state when resuming an interrupted task."
+        },
+        {
+          "id": "C",
+          "text": "Run two copies of the agent in parallel for every task and use whichever one finishes first as the source of truth."
+        },
+        {
+          "id": "D",
+          "text": "Restart the task from the beginning whenever a process is interrupted."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: A checkpointing pattern persists intermediate state so an interrupted task resumes from the latest checkpoint. Why the others are wrong: A. A longer timeout does not handle crashes or interruptions. C. Running two copies doubles cost and does not provide resumability. D. Restarting from the beginning wastes 30 to 60 minutes of work."
+    },
+    {
+      "id": 33,
+      "question": "Your Claude application uses tool calling to fetch patient data and generate summary reports. The flow occasionally fails because the model returns a tool_use block that references arguments not present in the schema, and your application code does not handle this case gracefully. How would you address this?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Validate the tool_use block's arguments against the tool schema before dispatching the tool and handle invalid arguments as a recognized error path."
+        },
+        {
+          "id": "B",
+          "text": "Log invalid tool_use blocks when they occur and allow the tool dispatch to proceed, relying on the tool's own error handling to surface failures back to the application."
+        },
+        {
+          "id": "C",
+          "text": "Retry the same request repeatedly until the model returns a valid tool_use block that matches the schema as expected."
+        },
+        {
+          "id": "D",
+          "text": "Stop using tool calling entirely and replace tools with prompted text generation that asks the model to describe what it would do."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Validate tool_use arguments against the schema before dispatch and treat invalid arguments as a handled error path. Why the others are wrong: B. Letting invalid calls proceed pushes failures downstream. C. Blind repeated retries are wasteful and not guaranteed to succeed. D. Abandoning tool calling removes needed functionality instead of handling errors."
+    },
+    {
+      "id": 34,
+      "question": "Your agent makes 10 to 15 tool calls per task, and you have noticed it sometimes loses track of earlier results by the time it reaches later steps. The agent's context window is large enough to hold all the messages, but the relevant information appears to get buried as the conversation grows. How would you address this?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Switch to a different agentic framework that advertises automatic context-window management as a built-in feature."
+        },
+        {
+          "id": "B",
+          "text": "Reduce the number of tool calls per task by combining several existing tools into larger, multi-purpose tools."
+        },
+        {
+          "id": "C",
+          "text": "Increase the context window further so all tool outputs from every prior step remain in full detail throughout the task."
+        },
+        {
+          "id": "D",
+          "text": "Apply a context-management pattern that summarizes or prunes older tool outputs while preserving the active task state."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: A context-management pattern that summarizes or prunes older tool outputs while preserving the active task state keeps relevant information visible. Why the others are wrong: A. Switching frameworks does not address the underlying issue. B. Merging tools reduces clarity and does not fix buried information. C. A larger window still leaves relevant information buried."
+    },
+    {
+      "id": 35,
+      "question": "A teammate has asked why your Claude application sometimes produces a response that includes the prompt text repeated back, and other times produces a response with the prompt text rephrased. They suspect a bug in the application's request construction. How would you respond?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Tell the teammate that the variation depends on which Claude model serves the request, and recommend pinning the application to a single model version to make the output behavior consistent."
+        },
+        {
+          "id": "B",
+          "text": "Explain that LLMs generate output token by token, and variation in how prompt content appears in output is a property of generation, not a bug in request construction."
+        },
+        {
+          "id": "C",
+          "text": "Confirm that the variation is a bug in the application's request construction and start investigating which part of the application is producing the inconsistent prompt text."
+        },
+        {
+          "id": "D",
+          "text": "Tell the teammate that the variation is caused by the application sending two different prompts on different runs and propose a code change that pins the system prompt to a single version."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: LLMs generate token by token, so how prompt text appears in output naturally varies. It is a property of generation, not a request-construction bug. Why the others are wrong: A. Variation occurs within one model and is not caused by model differences. C. Calling it a bug misdiagnoses normal behavior. D. There is no evidence the application sends different prompts."
+    },
+    {
+      "id": 36,
+      "question": "A teammate has asked you to explain why your Claude agent's tools include detailed descriptions in the tool definition, even when the tool name is already descriptive. The teammate suggests removing the descriptions to simplify the tool definitions. How would you respond?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Suggest replacing the descriptions with example calls embedded in the tool definition, treating example calls as a complete substitute for the prose description."
+        },
+        {
+          "id": "B",
+          "text": "Agree with the teammate because tool names are sufficient for the model to choose the right tool on every request the agent handles."
+        },
+        {
+          "id": "C",
+          "text": "Explain that the model uses the tool description to decide when to call the tool, and descriptions disambiguate cases where the tool name is not enough."
+        },
+        {
+          "id": "D",
+          "text": "Suggest moving the descriptions out of the tool definition and into a separate documentation file the team maintains so the tool definitions stay short and the descriptions remain available."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: The model relies on the tool description to decide when to call a tool; descriptions disambiguate cases where the name alone is not enough. Why the others are wrong: A. Examples can supplement, but do not fully replace, a clear description. B. Names alone are often ambiguous, so they are not sufficient. D. Descriptions must be in the tool definition for the model to use them."
+    },
+    {
+      "id": 37,
+      "question": "Your Claude application's error handling currently logs every API error with the same severity level. The team wants to differentiate between errors that should page an on-call engineer and errors that should be logged for later review. How would you structure the error handling?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Page on every error, on the grounds that paging guarantees that no error is missed by the team during normal operation across the application's lifecycle."
+        },
+        {
+          "id": "B",
+          "text": "Disable logging for any error that does not page, treating non-paging errors as not worth recording for later review either."
+        },
+        {
+          "id": "C",
+          "text": "Categorize errors by severity based on impact and recoverability, then route each category to the appropriate channel for paging or logging."
+        },
+        {
+          "id": "D",
+          "text": "Log every error with the same severity, on the grounds that differentiating severity adds complexity that does not pay off in most application setups over time."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Categorizing errors by impact and recoverability and routing each category to paging or logging gives useful alerts without noise. Why the others are wrong: A. Paging on everything causes alert fatigue. B. Not recording non-paging errors removes data needed for later review. D. Identical severity keeps the current problem."
+    },
+    {
+      "id": 38,
+      "question": "You are extending a Claude agent with a capability that needs to be reusable across multiple teams in the organization, with each team able to invoke and use it independently. How would you build the capability?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "As a custom tool embedded in this team's agent only, with other teams able to copy the implementation into their own agents when they need the capability."
+        },
+        {
+          "id": "B",
+          "text": "As a shared library that each team imports into its own Claude application code, with each team responsible for keeping the library up to date in its integration."
+        },
+        {
+          "id": "C",
+          "text": "As a Skill or MCP server because both are purpose-built for cross-team reuse independently by each consuming team."
+        },
+        {
+          "id": "D",
+          "text": "As a wrapper around an existing built-in tool that adds the missing functionality, on the grounds that built-in tools cover the reuse pattern when extended carefully."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Skills and MCP servers are purpose-built for reuse, letting each team use the capability independently. Why the others are wrong: A. Copying code into each agent causes duplication and drift. B. A shared library puts maintenance burden on every team. D. Extending a built-in tool does not provide a clean cross-team reuse mechanism."
+    },
+    {
+      "id": 39,
+      "question": "You are choosing between using STDIO-based communication and HTTP-based communication for an MCP server. The server will be invoked by a Claude Code session running locally. Which communication pattern would you use?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "STDIO and HTTP simultaneously for redundancy, with the team running two communication patterns at the same time across Claude Code sessions."
+        },
+        {
+          "id": "B",
+          "text": "HTTP on the grounds that HTTP is preferable to STDIO in any context the application might encounter during normal operation."
+        },
+        {
+          "id": "C",
+          "text": "HTTP polling against the MCP server, treating HTTP as a substitute for the standard MCP communication patterns."
+        },
+        {
+          "id": "D",
+          "text": "STDIO because STDIO is well-suited to local process communication and avoids unnecessary network setup."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: STDIO suits local process communication and avoids unnecessary network setup for a locally run Claude Code session. Why the others are wrong: A. Running both patterns adds complexity without benefit. B. HTTP is not better in all contexts; for a local server it adds needless network setup. C. 'HTTP polling' is not a standard MCP communication pattern."
+    },
+    {
+      "id": 40,
+      "question": "You are designing a Claude application that maintains user sessions across multi-turn conversations. The product team has asked how the application will handle session lifecycle: when sessions should expire, how state is reset, and how the application avoids carrying stale context into new conversations. How would you design session lifecycle?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Define explicit session expiration rules, state reset triggers, and rules for starting fresh sessions so stale context does not leak into new conversations."
+        },
+        {
+          "id": "B",
+          "text": "Define a single short session timeout that applies across all conversations and treat the timeout as the application's complete session lifecycle mechanism."
+        },
+        {
+          "id": "C",
+          "text": "Define explicit session expiration rules but rely on users to start new conversations when they want fresh context, with no automatic reset triggers in the application."
+        },
+        {
+          "id": "D",
+          "text": "Define state reset triggers tied to specific application events but apply them across all sessions globally, with no per-session expiration rules."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Explicit expiration rules, reset triggers and rules for fresh sessions prevent stale context from leaking into new conversations. Why the others are wrong: B. A single timeout does not cover state reset or fresh-start rules. C. Relying on users leaves stale context in place. D. Global triggers without per-session expiration leave sessions unmanaged."
+    },
+    {
+      "id": 41,
+      "question": "You are explaining to a stakeholder why running the same Claude prompt twice can produce slightly different results. The stakeholder is concerned this means the application is broken. How would you address the stakeholder's concern?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Tell the stakeholder the variation is a bug that the team will fix in the next release of the application, then create a work ticket to fix the bug."
+        },
+        {
+          "id": "B",
+          "text": "Tell the stakeholder the variation comes from network latency and that switching to a faster network connection will produce more consistent results across runs."
+        },
+        {
+          "id": "C",
+          "text": "Explain that LLMs are non-deterministic by default due to sampling, and describe how the application handles this through validation, retries, or temperature adjustment."
+        },
+        {
+          "id": "D",
+          "text": "Tell the stakeholder the variation is caused by Claude being updated continuously by Anthropic, and that switching to a fixed model snapshot will eliminate the variation entirely."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: LLMs are non-deterministic by default due to sampling. The application manages this through validation, retries or temperature adjustment, so the system is not broken. Why the others are wrong: A. Variation from sampling is expected behavior, not a bug. B. Network latency does not change output content. D. Variation occurs even on one fixed model snapshot, so pinning does not eliminate it."
+    },
+    {
+      "id": 42,
+      "question": "The product team has asked you to choose a Claude model for a new feature. The team has provided functional requirements but has not specified performance, cost, or quality targets. The team's product manager says, \"Use whatever model gives us the best results.\" How would you respond?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Ask the product team to specify quality, latency, and cost targets, then select the model whose tradeoffs best fit those targets."
+        },
+        {
+          "id": "B",
+          "text": "Run every Claude model on a representative sample and pick whichever scores best on a generic benchmark."
+        },
+        {
+          "id": "C",
+          "text": "Choose a mid-tier model and ship the feature, because mid-tier models work for most use cases without specified targets."
+        },
+        {
+          "id": "D",
+          "text": "Choose the largest, highest-capability Claude model, on the grounds that \"best results\" is most likely to mean highest quality."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Without targets, 'best' is undefined. Getting quality, latency and cost targets lets you choose the model with the best fit. Why the others are wrong: B. A generic benchmark may not reflect the feature's real needs. C. Defaulting to mid-tier is an assumption without evidence. D. The largest model may be too slow or expensive for the feature."
+    },
+    {
+      "id": 43,
+      "question": "Your Claude application is deployed to development, staging, and production environments. Each environment uses a different model version, different prompt versions, and different plugin dependencies, but the configuration is currently scattered across environment variables, hardcoded values, and undocumented setup scripts. How would you manage the configuration?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Use the latest available model version everywhere and stop pinning model versions, on the grounds that pinning adds maintenance overhead the team should aim to reduce."
+        },
+        {
+          "id": "B",
+          "text": "Move all configuration into hardcoded application code to reduce reliance on external configuration sources that are difficult to track over time."
+        },
+        {
+          "id": "C",
+          "text": "Consolidate the configuration into a version-controlled system documenting model version pinning, prompt versioning, and plugin dependencies for each environment."
+        },
+        {
+          "id": "D",
+          "text": "Standardize all environments to use the same configuration values to eliminate the differences between development, staging, and production."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: A version-controlled system that documents model pinning, prompt versions and plugin dependencies per environment makes configuration traceable and reproducible. Why the others are wrong: A. Unpinned 'latest' versions cause unpredictable changes. B. Hardcoding makes configuration harder to manage. D. Environments legitimately need some differences; forcing sameness removes useful separation."
+    },
+    {
+      "id": 44,
+      "question": "You are designing a Claude application that processes user-submitted text. Some of that text could include sensitive information such as account numbers or passwords that the application should not send to Claude. How would you design the application?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Define the application boundary explicitly, identify what content can leave the boundary for Claude, and add filtering or redaction at the boundary."
+        },
+        {
+          "id": "B",
+          "text": "Add a prompt instruction in the system prompt specifying the categories of sensitive information Claude should disregard when processing user-submitted text."
+        },
+        {
+          "id": "C",
+          "text": "Log all user-submitted text before it is sent to Claude and review the logs periodically to identify whether sensitive information is reaching the model."
+        },
+        {
+          "id": "D",
+          "text": "Apply filtering at the boundary for the most commonly observed sensitive data patterns and expand coverage to additional patterns based on findings from production monitoring."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Define the application boundary, decide what may leave it, and enforce filtering or redaction there, so sensitive data never reaches Claude. Why the others are wrong: B. A prompt instruction does not stop data from being sent in the first place. C. Reviewing logs afterwards detects exposure only after it has happened. D. Filtering only common patterns and expanding later leaves known gaps."
+    },
+    {
+      "id": 45,
+      "question": "Your Claude application runs long agentic workflows where the agent makes many tool calls, and the conversation history grows quickly. After about 20 tool calls, you notice the agent's responses become less focused and sometimes ignore earlier task constraints. How would you address this?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Remove tool calling from the workflow entirely so the agent operates as a single text-generation step with no tool outputs accumulating in the context window."
+        },
+        {
+          "id": "B",
+          "text": "Apply context engineering techniques such as tool output pruning or compaction to keep the active task state visible while reducing the volume of older content."
+        },
+        {
+          "id": "C",
+          "text": "Increase the model's context window so the agent can hold every tool output at full detail across the entire workflow no matter how many tool calls it accumulates."
+        },
+        {
+          "id": "D",
+          "text": "Restart the agent every five tool calls to prevent any drift, with the agent losing all task state at each restart point during the workflow."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Context engineering (tool output pruning or compaction) keeps task constraints visible and reduces older noise. Why the others are wrong: A. Removing tool calling removes the agent's capabilities. C. A larger window does not stop focus from degrading. D. Frequent restarts lose all task state."
+    },
+    {
+      "id": 46,
+      "question": "You are designing an agent that handles a complex claim-processing workflow. Each claim moves through fact extraction, eligibility evaluation, and a decision step. The three subtasks have distinct success criteria, and some claims require iteration between fact extraction and eligibility evaluation before a decision can be reached. Which agent pattern would you apply?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "A graph-based pattern that lets the agent move between subtasks based on the state of each claim, with each subtask evaluated against its own criteria."
+        },
+        {
+          "id": "B",
+          "text": "A streaming pattern that emits partial decisions as the agent processes each claim, refining the output until a final decision emerges from the stream."
+        },
+        {
+          "id": "C",
+          "text": "A single tool-use loop pattern that gives one agent access to all the tools needed for fact extraction, eligibility evaluation, and decision-making."
+        },
+        {
+          "id": "D",
+          "text": "A linear chain pattern that processes every claim through fact extraction, then eligibility evaluation, then decision, with no return paths between subtasks."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: A graph-based pattern lets the agent move between subtasks, including looping between extraction and eligibility, while each is judged on its own criteria. Why the others are wrong: B. Streaming partial decisions is about delivery, not workflow structure. C. A single tool loop ignores the distinct subtasks and criteria. D. A linear chain with no return paths cannot support iteration."
+    },
+    {
+      "id": 47,
+      "question": "Your enterprise has a contract with AWS that requires Claude API calls to flow through Amazon Bedrock rather than the direct Anthropic API. Your team is building a new Claude application and is unfamiliar with this constraint. How would you build the application?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Build two parallel implementations of every call, one for the direct Anthropic API and one for Bedrock, and pick the faster one at runtime."
+        },
+        {
+          "id": "B",
+          "text": "Build the application against the direct Anthropic API now and migrate to Bedrock in a follow-up release once the team has more experience with the Bedrock API."
+        },
+        {
+          "id": "C",
+          "text": "Configure the application to invoke Claude through the Bedrock-compatible API path while keeping the application's logic provider-agnostic."
+        },
+        {
+          "id": "D",
+          "text": "Build the application against the direct Anthropic API and ignore the contractual requirement to route Claude calls through Amazon Bedrock."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Invoke Claude through the Bedrock-compatible path to satisfy the contract, keeping application logic provider-agnostic. Why the others are wrong: A. Maintaining two implementations of every call is wasteful and still risks violating the contract. B. Building on the direct API first violates the contract and creates rework. D. Ignoring the contract is a compliance failure."
+    },
+    {
+      "id": 48,
+      "question": "Your Claude application has been running for several conversation turns, and you notice the model occasionally references information that was discussed many turns ago but is no longer relevant. You suspect context drift is causing the model to weight stale content too heavily. How would you address the drift?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Increase the context window size so all turns of the conversation remain visible to the model in full detail."
+        },
+        {
+          "id": "B",
+          "text": "Reset the conversation after every turn so the model loses all prior turns when generating a response."
+        },
+        {
+          "id": "C",
+          "text": "Apply compaction to summarize older portions of the conversation so the gist remains while the specifics carry less weight."
+        },
+        {
+          "id": "D",
+          "text": "Truncate the conversation so the model sees only the most recent turn during each subsequent response."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Compaction summarizes older turns so the gist remains while stale specifics carry less weight. Why the others are wrong: A. A bigger window keeps all stale content fully visible. B. Resetting every turn destroys conversation continuity. D. Keeping only the latest turn discards needed context."
+    },
+    {
+      "id": 49,
+      "question": "You are building a Claude application that needs to maintain a persistent connection to a service that streams real-time updates. The team is unsure what communication pattern to use. Which communication pattern would you use?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Repeated short-lived HTTP polling requests, where the application opens a new HTTP connection each time it checks for updates."
+        },
+        {
+          "id": "B",
+          "text": "A WebSocket, because WebSockets are designed for bidirectional, persistent, real-time communication between the client and the streaming service."
+        },
+        {
+          "id": "C",
+          "text": "A single long HTTP request the server holds open indefinitely, with no standard WebSocket framing on the connection."
+        },
+        {
+          "id": "D",
+          "text": "File-based communication where the service writes new updates to disk and the application polls the file system for changes."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: WebSockets provide persistent, bidirectional, real-time communication and fit streaming updates. Why the others are wrong: A. Repeated short polling is inefficient and adds latency. C. An indefinitely open HTTP request is non-standard and fragile. D. File-based polling is indirect and unsuitable for real-time services."
+    },
+    {
+      "id": 50,
+      "question": "A teammate has asked how the Claude SDK handles transient API errors, such as a temporary network issue or a brief rate-limit response. They want to know whether the application code needs to handle every transient error or whether the SDK provides any default behavior. How would you describe the SDK's default behavior?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "The SDK provides default retry behavior for transient errors up to a fixed number of attempts, and this behavior is not configurable."
+        },
+        {
+          "id": "B",
+          "text": "The SDK provides default retry behavior for network errors but surfaces rate-limit responses directly to the application code, which must implement its own retry logic for those cases."
+        },
+        {
+          "id": "C",
+          "text": "The SDK logs transient errors to a default error stream and continues execution without retrying, leaving the application code responsible for detecting and responding to failed calls."
+        },
+        {
+          "id": "D",
+          "text": "The SDK provides default retry behavior for many transient errors, and the application code can configure or extend that behavior as needed."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: The SDK retries many transient errors by default, and the behavior can be configured or extended. Why the others are wrong: A. The retry behavior is configurable, so this is incorrect. B. Rate-limit responses are included in the SDK's retry handling. C. The SDK does retry, so saying it only logs is incorrect."
+    },
+    {
+      "id": 51,
+      "question": "Your team is debating how to manage the prompts used in your Claude application. Some prompts are checked into the code repository, some live in a separate configuration file, and some are constructed inline at runtime. The result is inconsistent, and a recent prompt change went out without code review. What steps would you take?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Move all prompts out of version control to a separate spreadsheet that team members can edit freely as the application evolves over time."
+        },
+        {
+          "id": "B",
+          "text": "Move all prompts to inline runtime construction so the team can update them quickly through a streamlined process outside the standard code review workflow."
+        },
+        {
+          "id": "C",
+          "text": "Establish a single source of truth for prompts but keep change review optional, allowing developers to update prompts directly when changes are urgent."
+        },
+        {
+          "id": "D",
+          "text": "Establish a single source of truth for prompts, version-control them alongside code, and require code review for prompt changes."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: A single source of truth, versioned alongside code, with code review required for changes fixes both inconsistency and the unreviewed change. Why the others are wrong: A. A spreadsheet removes version control and review. B. Inline runtime construction bypasses review and increases inconsistency. C. Optional review recreates the risk that just occurred."
+    },
+    {
+      "id": 52,
+      "question": "You are implementing a custom tool for your Claude agent. The tool needs to interact with an external pricing service that returns product data. Which of the following best practices would you apply as you develop this tool?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Omit the tool description and let the model infer when to use the tool based on the tool's name and the rest of the prompt context."
+        },
+        {
+          "id": "B",
+          "text": "Define the tool with a loose schema and let the model interpret the inputs flexibly on each call the agent makes."
+        },
+        {
+          "id": "C",
+          "text": "Implement the tool with no error handling and let the agent loop catch failures whenever the pricing service returns an error during operation."
+        },
+        {
+          "id": "D",
+          "text": "Define the tool with a clear schema, write a precise description for when to call it, and handle pricing service errors explicitly."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Best practice: a clear schema, a precise description for when to call the tool, and explicit handling of pricing service errors. Why the others are wrong: A. Without a description the model has less information to choose the tool. B. A loose schema invites invalid inputs. C. Skipping error handling makes failures harder to manage."
+    },
+    {
+      "id": 53,
+      "question": "You are integrating Claude into an application written in Python. The Claude SDK provides a Python client that wraps the underlying REST API. How would you integrate the SDK?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Call the REST API directly with raw HTTP requests so the application avoids the SDK's abstraction between the application code and the API."
+        },
+        {
+          "id": "B",
+          "text": "Use the Claude Python SDK and let it handle authentication, retries, and response parsing through its standard documented patterns for Python integrations."
+        },
+        {
+          "id": "C",
+          "text": "Use a different LLM provider's SDK and translate the responses into Claude's API shape so the application can switch providers in the future."
+        },
+        {
+          "id": "D",
+          "text": "Skip the SDK and embed Claude calls in shell commands invoked from Python, so that the application runs the calls outside the main Python process."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: The Python SDK handles authentication, retries and response parsing through documented patterns, reducing boilerplate and errors. Why the others are wrong: A. Raw HTTP requires re-implementing what the SDK already does. C. Using another provider's SDK for Claude is unnecessary and error-prone. D. Shell commands from Python add overhead and fragility."
+    },
+    {
+      "id": 54,
+      "question": "Your Claude application is producing inconsistent outputs for similar inputs, even when using the same model and prompt. You want to debug the issue systematically. Your debugging approach would...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Lower the model's temperature and re-run the inconsistent inputs to determine whether the parameter change reduces output variability across runs."
+        },
+        {
+          "id": "B",
+          "text": "Retry every request that produces an unexpected output and log the results to identify whether repeated calls converge on a consistent response pattern."
+        },
+        {
+          "id": "C",
+          "text": "Assume inconsistent outputs reflect normal LLM non-determinism and document the variability as an accepted characteristic of the application's behavior."
+        },
+        {
+          "id": "D",
+          "text": "Capture full traces of input, system prompt, user messages, model output, and parameters, then analyze the differences between consistent and inconsistent runs."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Capture full traces (input, system prompt, messages, output, parameters) and compare consistent and inconsistent runs to find the cause systematically. Why the others are wrong: A. Changing temperature is a guess, not a diagnosis. B. Retrying and logging does not reveal why outputs differ. C. Assuming it is normal skips the investigation."
+    },
+    {
+      "id": 55,
+      "question": "You are deciding between deploying a Claude-powered agent on Anthropic's hosted infrastructure or self- hosting under a \"bring your own cloud\" model in your own AWS account. The agent processes customer data subject to your enterprise's data residency policies, but the team wants to ship quickly and avoid managing infrastructure. Which deployment model would you recommend?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Self-hosting under BYOC for an initial pilot, then evaluating whether to migrate to Anthropic-hosted infrastructure once the agent's data-handling patterns are better understood."
+        },
+        {
+          "id": "B",
+          "text": "Deploying on Anthropic-hosted infrastructure while the team drafts a request to update the enterprise data residency policy to accommodate hosted AI deployments."
+        },
+        {
+          "id": "C",
+          "text": "Self-hosting under BYOC to satisfy the data residency requirement, while working with the infrastructure team to reduce the operational overhead of managing the deployment."
+        },
+        {
+          "id": "D",
+          "text": "Deploying on Anthropic-hosted infrastructure to meet the team's shipping timeline, and flagging the data residency requirement for a follow-up compliance review after launch."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Data residency is a hard requirement, so self-host under BYOC to comply and work to reduce operational overhead. Why the others are wrong: A. Piloting on BYOC then migrating to hosted infrastructure may break the residency policy. B. Hosting now and trying to change the policy later risks non-compliance meanwhile. D. Deferring compliance review until after launch risks violating policy."
+    },
+    {
+      "id": 56,
+      "question": "You are building an agent that needs to call several internal APIs and a database in a structured, repeatable way. Your team has decided to use the Claude Agent SDK rather than build a custom loop. You are setting up the agent's tool definitions and execution loop. How would you set up the tools and execution loop?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Use the SDK's tool interface and let the SDK handle the loop, dispatch, and history."
+        },
+        {
+          "id": "B",
+          "text": "Call the Messages API directly and let the model format its tool calls in plain text."
+        },
+        {
+          "id": "C",
+          "text": "Use the SDK's tool interface and loop, with conversation history stored in a separate team database."
+        },
+        {
+          "id": "D",
+          "text": "Use the SDK's tool interface and write the loop and history layer in the team's own code."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Using the Agent SDK's tool interface and letting it manage the loop, dispatch and history is the point of choosing the SDK over a custom loop. Why the others are wrong: B. Plain-text tool calls skip structured tool use and the SDK. C. Separate history storage adds complexity that is not required. D. Writing your own loop and history layer defeats the reason for choosing the SDK."
+    },
+    {
+      "id": 57,
+      "question": "You are designing a Claude application that helps medical researchers analyze multi-step clinical case studies. The application must work through differential diagnoses by considering symptom patterns, weighing evidence across competing hypotheses, and showing intermediate reasoning steps before producing a final recommendation. The team is choosing among Claude's available model options. The model option best suited to this use case is...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Zero-shot prompting alone with no model option adjustments, which keeps the application's configuration as simple as possible."
+        },
+        {
+          "id": "B",
+          "text": "Extended thinking, which lets the model reason through the differential diagnosis steps before producing the final recommendation."
+        },
+        {
+          "id": "C",
+          "text": "Fast mode, which prioritizes the lowest possible latency at the expense of reasoning depth on complex tasks."
+        },
+        {
+          "id": "D",
+          "text": "A smaller model with a tighter context window, which encourages the model to focus its limited capacity on the task."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Extended thinking lets the model reason step by step through competing hypotheses and show intermediate reasoning before the final recommendation. Why the others are wrong: A. Zero-shot with no adjustment gives no extra reasoning depth. C. Fast mode prioritizes latency over reasoning depth. D. A smaller model with a tighter window is weaker at complex reasoning."
+    },
+    {
+      "id": 58,
+      "question": "Your Claude application's token costs have grown faster than expected. The team has not been tracking token usage by feature, so the team cannot identify which features are driving cost. The team is debating how to respond. How would you respond?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Tell the team that cost growth is unavoidable as the application scales and that no investigation will change the trajectory of the application's cost over the next several quarters."
+        },
+        {
+          "id": "B",
+          "text": "Switch every feature to the smallest model to cut cost broadly across the application during normal operation."
+        },
+        {
+          "id": "C",
+          "text": "Reduce token usage uniformly across all features by half, applying the cut evenly across the application during normal operation."
+        },
+        {
+          "id": "D",
+          "text": "Add token usage tracking by feature to the application's logging so the team can identify which features drive cost before recommending changes."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: You cannot manage what you do not measure. Add per-feature token tracking, then decide on changes. Why the others are wrong: A. Cost growth is not unavoidable; investigation can find savings. B. Switching everything to the smallest model may hurt quality without evidence. C. A blanket 50% cut is arbitrary and may break features."
+    },
+    {
+      "id": 59,
+      "question": "You have just shipped a new Claude-powered application to production. The development phase is complete, and the system is now in active use by internal teams. The next phase of work for this system is...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Retiring the system, since shipping is the final lifecycle stage for any application that reaches production."
+        },
+        {
+          "id": "B",
+          "text": "Running a formal post-deployment review that assesses the development phase before the team does any further work on the system."
+        },
+        {
+          "id": "C",
+          "text": "Operating and maintaining the system, including monitoring, responding to issues, and planning evolution."
+        },
+        {
+          "id": "D",
+          "text": "Handing the system over to a separate operations team that will manage it independently of the development team going forward."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: After shipping, the system enters operation and maintenance: monitoring, handling issues and planning evolution. Why the others are wrong: A. Shipping is not the end of the lifecycle. B. A formal review is useful but is not the next lifecycle phase. D. Handing over is one possible option, not the lifecycle phase itself."
+    },
+    {
+      "id": 60,
+      "question": "A teammate has asked how to extend Claude Code with a custom Skill that the team can invoke during sessions. The Skill consists of a set of instructions and a few support scripts the team wants Claude to be able to call when the Skill is loaded. Where is the right place to define the Skill?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Define the Skill as a long inline instruction at the top of every CLAUDE.md file in the team's repositories so Claude has access to it on every session."
+        },
+        {
+          "id": "B",
+          "text": "Define the Skill inside the application's source code as a regular library module and call it from the application code instead of from Claude Code."
+        },
+        {
+          "id": "C",
+          "text": "Define the Skill in a Skills directory recognized by Claude Code, where Claude can discover and load it during sessions for the team's repositories."
+        },
+        {
+          "id": "D",
+          "text": "Define the Skill in a personal scratch directory on each developer's machine and load it manually before each Claude Code session that needs it."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Skills are defined in a Skills directory recognized by Claude Code, where Claude can discover and load them. Why the others are wrong: A. Pasting the Skill into every CLAUDE.md duplicates it and loads it all the time. B. A library module is called by application code, not by Claude Code as a Skill. D. A personal scratch directory is not shared or discoverable by the team."
+    },
+    {
+      "id": 61,
+      "question": "You are designing an agent that handles a multi-step research task. You want the agent to break the task into smaller pieces, hand each piece to a focused subagent, and consolidate the results. The agent pattern you would apply is...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "An orchestrator and subagent pattern with specialized subagents assigned to each subtask."
+        },
+        {
+          "id": "B",
+          "text": "A memory pattern that stores the entire research history in advance, before any subtask begins execution."
+        },
+        {
+          "id": "C",
+          "text": "A context-window pruning pattern that drops each subtask's content after the agent moves on."
+        },
+        {
+          "id": "D",
+          "text": "A single tool-use loop that includes every tool the agent might need across all subtasks."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: The orchestrator and subagent pattern splits the task, delegates to focused subagents and consolidates the results. Why the others are wrong: B. Pre-storing all history does not decompose or delegate work. C. Pruning each subtask's content is a context technique, not a delegation pattern. D. A single loop with every tool does not provide decomposition or focus."
+    },
+    {
+      "id": 62,
+      "question": "Your Claude application receives untrusted input from external sources. The team is establishing how the application should treat this untrusted input. Untrusted input would be...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Validated and sanitized before being incorporated into prompts, and treated as data the model should not interpret as instructions."
+        },
+        {
+          "id": "B",
+          "text": "Treated identically to trusted input from internal sources, on the grounds that all input the application receives can be handled the same way."
+        },
+        {
+          "id": "C",
+          "text": "Routed through a separate Claude application with more lax security controls so the original application does not handle the untrusted input directly."
+        },
+        {
+          "id": "D",
+          "text": "Blocked entirely so the application accepts only trusted input, with no path for legitimate external input the application might process."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Validate and sanitize untrusted input and treat it as data, not instructions, to reduce prompt injection risk. Why the others are wrong: B. Treating untrusted input like trusted input is unsafe. C. Routing through a laxer application only moves the risk. D. Blocking all external input is impractical for legitimate use."
+    },
+    {
+      "id": 63,
+      "question": "Your Claude application's outputs are inconsistent in format. The team's instructions are scattered across the system prompt and user messages, with some instructions stated only once and others repeated. How would you fix the inconsistency?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Move all instructions into the user message so the application's behavior is controlled at the input point."
+        },
+        {
+          "id": "B",
+          "text": "Consolidate behavioral and format instructions in the system prompt and keep user messages focused on the user's input."
+        },
+        {
+          "id": "C",
+          "text": "Place each instruction wherever the developer who first wrote it found most natural, retaining the original intent."
+        },
+        {
+          "id": "D",
+          "text": "Repeat all instructions in both the system prompt and the user message so the model sees each instruction more than once."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Consolidate behavioral and format instructions in the system prompt and keep user messages for the user's input; this is clear and consistent. Why the others are wrong: A. Moving everything into the user message mixes instructions with input. C. Scattered placement is what causes the inconsistency. D. Repeating everything everywhere adds redundancy and risks conflicts."
+    },
+    {
+      "id": 64,
+      "question": "Your team uses Claude Code across multiple repositories. You want the team's rules and general coding standards to apply to all repositories, and other rules to apply only to specific repositories. The team is currently duplicating instructions across every repository's CLAUDE.md file. How would you address this?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Move all instructions to a separate documentation site that developers consult during Claude Code sessions across all repositories."
+        },
+        {
+          "id": "B",
+          "text": "Use a CLAUDE.md hierarchy that scopes general standards broadly and project-specific context within each repository's local CLAUDE.md."
+        },
+        {
+          "id": "C",
+          "text": "Stop using CLAUDE.md altogether and ask each developer to configure Claude Code manually for each project they work on."
+        },
+        {
+          "id": "D",
+          "text": "Use a single repository's CLAUDE.md as the central source of truth and link to it from every other repository's CLAUDE.md file."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: A CLAUDE.md hierarchy lets general standards apply broadly while repository-specific rules stay in each local CLAUDE.md, with no duplication. Why the others are wrong: A. An external site is not automatically loaded by Claude Code. C. Dropping CLAUDE.md and configuring manually loses shared, versioned standards. D. Linking to one repository's file is fragile and not a native hierarchy."
+    },
+    {
+      "id": 65,
+      "question": "Your Claude application's prompt was written months ago and has not been updated. The team has discovered through evals that the prompt produces good results on common cases but underperforms on a specific category of inputs that has grown in volume. How would you respond?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Iterate on the prompt to address the underperforming category, validate the change with evals, and continue refining as needed."
+        },
+        {
+          "id": "B",
+          "text": "Tell users to avoid the underperforming category by adding warnings in the application's user interface about handled inputs."
+        },
+        {
+          "id": "C",
+          "text": "Replace the prompt with a new one aligned to the underperforming category, treating any common-case performance change as a known tradeoff."
+        },
+        {
+          "id": "D",
+          "text": "Add the underperforming category to a separate Claude application with its own prompt so the original prompt does not change."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Iterating on the prompt for the weak category and validating each change with evals fixes the gap while protecting the common-case results the prompt already handles well. Why the others are wrong: B. Warning users avoids the problem instead of improving the application's behavior. C. Replacing the whole prompt risks regressing the common cases that currently work well. D. Splitting the category into a separate application adds maintenance cost without improving the original prompt."
+    },
+    {
+      "id": 66,
+      "question": "You are establishing the guardrail strategy for a Claude application. The team wants to ensure guardrail failure does not expose the application to unsafe behavior. The guardrail strategy would...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Layer multiple guardrails so a single guardrail failure does not expose the application to unsafe behavior."
+        },
+        {
+          "id": "B",
+          "text": "Apply guardrails at the application output level only and route flagged responses to a human reviewer before they are delivered to the user."
+        },
+        {
+          "id": "C",
+          "text": "Implement a single comprehensive system prompt guardrail and validate its coverage against the application's full range of expected inputs."
+        },
+        {
+          "id": "D",
+          "text": "Apply guardrails at the model level only and rely on the model's built-in safety behaviors to handle any cases the guardrail does not explicitly cover."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Layered guardrails give defense in depth, so if one guardrail fails the others still prevent unsafe behavior from reaching users. Why the others are wrong: B. Output-level guardrails alone leave a single point of failure and no protection earlier in the flow. C. A single system prompt guardrail is probabilistic and is one point of failure, however well validated. D. Relying only on model-level safety leaves uncovered cases with no independent protection."
+    },
+    {
+      "id": 67,
+      "question": "A teammate has asked you to explain the difference between context engineering and prompt engineering. They have heard the terms used interchangeably and are unsure how each applies to a Claude application that processes long-running multi-step tasks. How would you describe the distinction?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Prompt engineering focuses on the model's response, while context engineering focuses on the user's input across many sessions in a long-running multi-step Claude application."
+        },
+        {
+          "id": "B",
+          "text": "Prompt engineering is the older term for prompt design, while context engineering is the newer term that has replaced it in modern Claude applications across the industry."
+        },
+        {
+          "id": "C",
+          "text": "Prompt engineering shapes individual prompts for specific outputs, while context engineering manages how content flows across turns and steps and takes steps to keep relevant state visible."
+        },
+        {
+          "id": "D",
+          "text": "Prompt engineering and context engineering each address content the team gives Claude, but the team can group them under a single workflow because the practices use overlapping techniques."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Prompt engineering shapes individual prompts to get specific outputs, while context engineering manages what content flows across turns and steps and keeps relevant state visible, which matters for long-running multi-step tasks. Why the others are wrong: A. This mischaracterizes both disciplines; context engineering is not just about user input across sessions. B. Context engineering has not replaced prompt engineering; they are distinct, complementary practices. D. Overlapping techniques do not make them the same practice; they address different problems."
+    },
+    {
+      "id": 68,
+      "question": "Your team is integrating Claude into an existing REST API service. The service handles concurrent requests, and you are deciding how to structure the Claude API calls within the existing async codebase. How would you structure the Claude calls?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Run Claude API calls in a separate thread pool isolated from the rest of the service so the main event loop is not affected."
+        },
+        {
+          "id": "B",
+          "text": "Replace the existing async REST service with a synchronous service to match the call style of synchronous Claude SDK clients."
+        },
+        {
+          "id": "C",
+          "text": "Use the Claude SDK's async client and structure Claude calls as awaitable operations alongside the rest of the service's async code."
+        },
+        {
+          "id": "D",
+          "text": "Make synchronous Claude API calls and block the async event loop until each call completes before processing the next request."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Using the SDK's async client lets Claude calls be awaited alongside the rest of the async code, so concurrent requests are handled without blocking the event loop. Why the others are wrong: A. A separate thread pool adds complexity when a native async client already exists. B. Rewriting the service as synchronous is a drastic, unnecessary change that hurts concurrency. D. Blocking synchronous calls stall the event loop and reduce concurrent request handling."
+    },
+    {
+      "id": 69,
+      "question": "Your Claude application requests structured JSON output from the model. Most of the time the JSON is well-formed, but occasionally Claude returns malformed JSON that breaks downstream processing. How would you handle the malformed output?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Manually inspect every response before downstream processing so a human reviewer catches any malformed JSON before the application passes the response to downstream systems."
+        },
+        {
+          "id": "B",
+          "text": "Add output validation that parses Claude's response against the expected schema and treats malformed output as a recognized error path with retry or fallback handling."
+        },
+        {
+          "id": "C",
+          "text": "Switch to free-form text output so the application no longer depends on JSON parsing for any of the responses it sends to downstream systems during normal operation."
+        },
+        {
+          "id": "D",
+          "text": "Retry the same request repeatedly until valid JSON appears in the model's response, with the retry loop adding delay to the application's response time on affected requests."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Validating Claude's response against the expected schema and treating malformed output as a recognized error path (retry or fallback) keeps malformed JSON from breaking downstream processing. Why the others are wrong: A. Manual inspection of every response does not scale and defeats automation. C. Switching to free-form text gives up the structure downstream systems need. D. Blind repeated retries add latency and are not guaranteed to succeed without validation and fallback handling."
+    },
+    {
+      "id": 70,
+      "question": "Your team is preparing to roll out a configuration change that updates several prompt versions across a Claude application used by multiple downstream systems. The change has already been tested in staging, but the team has not assessed how the prompt change will affect each downstream system that depends on the application's output. What would you do before rolling out the change?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Assess the configuration impact on each downstream system before rolling out, and coordinate with downstream system owners as needed."
+        },
+        {
+          "id": "B",
+          "text": "Document the prompt version changes in the application changelog and proceed with the rollout, treating the staging test results as sufficient evidence of impact across all downstream systems."
+        },
+        {
+          "id": "C",
+          "text": "Notify downstream system owners that a change is coming and schedule the rollout for the following week, without conducting a formal impact assessment."
+        },
+        {
+          "id": "D",
+          "text": "Limit the rollout to systems that were explicitly included in staging testing, and defer all other downstream systems until a later release cycle."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Assessing the impact on each downstream system and coordinating with their owners before rollout catches problems that staging tests alone cannot reveal. Why the others are wrong: B. Staging results do not show how each downstream system is affected, and a changelog entry is not an assessment. C. Notifying owners without a formal impact assessment still leaves the effects unknown. D. Limiting the rollout to systems tested in staging leaves other dependents unassessed and defers the problem."
+    },
+    {
+      "id": 71,
+      "question": "A teammate is debugging a Claude application whose system prompt has grown to several hundred lines and now contains overlapping, contradictory, and obsolete instructions. How would you advise the teammate?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Add more explicit instructions so the most recent rules dominate the model's interpretation of the prompt during each request."
+        },
+        {
+          "id": "B",
+          "text": "Audit the prompt for overlap, contradiction, and obsolete content, then refactor so each instruction is clear, current, and non-redundant."
+        },
+        {
+          "id": "C",
+          "text": "Tighten only the contradictory rules first, treating the overlap and obsolete content as lower-priority work the team can address later."
+        },
+        {
+          "id": "D",
+          "text": "Split the prompt across multiple system prompts so the model sees a smaller portion at any given time."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Auditing for overlap, contradiction and obsolete content and then refactoring gives a clear, current, non-redundant prompt, which is the root-cause fix. Why the others are wrong: A. Adding more instructions makes the contradictions and bloat worse. C. Fixing only contradictions leaves overlap and obsolete content that keep degrading the prompt. D. Splitting across multiple system prompts does not resolve conflicts and is not how a system prompt works."
+    },
+    {
+      "id": 72,
+      "question": "Your Claude application has multi-step workflows where each step's output is needed only briefly before the agent moves on. The cumulative tool output is filling the context window with content that is no longer relevant. How would you handle the accumulating tool output?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Apply tool output pruning to remove tool outputs that are no longer needed by later steps in the workflow."
+        },
+        {
+          "id": "B",
+          "text": "Apply prompt caching to the accumulated tool outputs so the application does not re-pay for the older content on each subsequent step."
+        },
+        {
+          "id": "C",
+          "text": "Switch to a smaller Claude model that processes context more efficiently and treat any quality loss as a tradeoff for the cost reduction."
+        },
+        {
+          "id": "D",
+          "text": "Keep every tool output in the context indefinitely so the agent has the full record of every step it has executed during the workflow."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: Tool output pruning removes outputs that later steps no longer need, freeing the context window and keeping the active state visible. Why the others are wrong: B. Prompt caching lowers the cost of repeated content but does not remove irrelevant content from the context. C. A smaller model does not solve context accumulation and may reduce quality. D. Keeping every output indefinitely is what fills the context window and buries relevant information."
+    },
+    {
+      "id": 73,
+      "question": "You are writing a system prompt for a Claude application that needs to produce output in a specific JSON shape. The downstream system will reject any output that does not match the schema. Your prompt would need to...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Instruct Claude to use whichever output format it considers most appropriate for each request the application handles."
+        },
+        {
+          "id": "B",
+          "text": "Instruct Claude to return JSON sometimes and free text other times so the application's output captures both formats."
+        },
+        {
+          "id": "C",
+          "text": "Omit any reference to the format and rely on a post-processing step in the application to reshape Claude's output."
+        },
+        {
+          "id": "D",
+          "text": "Include explicit constraints describing the required JSON schema and an instruction to produce only output matching that schema."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Explicit constraints describing the required JSON schema, plus an instruction to output only matching content, give Claude the clear specification a strict downstream system needs. Why the others are wrong: A. Letting Claude pick its own format will break a downstream system that rejects non-matching output. B. Mixing JSON and free text guarantees failures downstream. C. Omitting the format and reshaping afterwards is fragile and unnecessary."
+    },
+    {
+      "id": 74,
+      "question": "You are deciding between Claude models for a task. The team has identified three relevant tradeoff dimensions: quality, latency, and cost. The right model is the one that...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Satisfies the task's latency requirement first, then is evaluated against quality and cost thresholds to confirm the selection is acceptable across all three dimensions."
+        },
+        {
+          "id": "B",
+          "text": "Meets the task's cost target within a defined latency budget, with quality validated against a representative sample of inputs after the model is selected."
+        },
+        {
+          "id": "C",
+          "text": "Fits the task's quality, latency, and cost requirements together, recognizing that improving one dimension typically affects the others."
+        },
+        {
+          "id": "D",
+          "text": "Meets the task's quality requirements at an acceptable latency, with cost reviewed separately once the quality and latency bar has been established."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Model choice means fitting quality, latency and cost together, recognizing that improving one dimension typically affects the others. Why the others are wrong: A. Optimizing latency first and checking the others later treats the tradeoffs as sequential instead of joint. B. Validating quality only after selecting on cost and latency risks choosing a model that is not good enough. D. Reviewing cost separately after quality and latency ignores that the three dimensions interact."
+    },
+    {
+      "id": 75,
+      "question": "You are building a Claude application that processes 10,000 customer emails overnight to extract structured data. The work is non-interactive, runs once daily, and has a flexible completion window of several hours. Which Claude API would you use?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "The Batch API, which is designed for non-interactive workloads with flexible completion windows."
+        },
+        {
+          "id": "B",
+          "text": "The streaming responses API to process each email and return partial results to a database as the model generates them."
+        },
+        {
+          "id": "C",
+          "text": "The real-time Messages API, processing the emails one at a time sequentially to ensure consistent ordering of results."
+        },
+        {
+          "id": "D",
+          "text": "The real-time Messages API with concurrent requests to process the emails as fast as possible during the overnight window."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: The Batch API is built for non-interactive workloads with flexible completion windows, like an overnight run over 10,000 emails, and costs less than real-time calls. Why the others are wrong: B. Streaming is for delivering output progressively to a user, which this offline job does not need. C. Sequential real-time calls are slow and give up the cost benefit of batching. D. Concurrent real-time requests risk rate limits and pay full price for work with no urgency."
+    },
+    {
+      "id": 76,
+      "question": "You are building a Claude application that needs to deliver model output to end users as it is generated, instead of waiting for the full response to complete. The Claude API mechanism you would use is...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Structured JSON output, which delivers responses only after the model has finalized the JSON shape across the entire response."
+        },
+        {
+          "id": "B",
+          "text": "Streaming responses, which deliver tokens incrementally as the model generates them so users see output progressively."
+        },
+        {
+          "id": "C",
+          "text": "The Batch API, which delivers full responses after a delay suitable for non-interactive workloads."
+        },
+        {
+          "id": "D",
+          "text": "Prompt caching, which speeds up the cost profile of future requests and does not affect the delivery timing of the first response."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Streaming responses deliver tokens incrementally as they are generated, so users see output progressively instead of waiting for the full response. Why the others are wrong: A. Structured JSON output concerns the format of the response, not how it is delivered. C. The Batch API returns full responses after a delay and is not for interactive delivery. D. Prompt caching affects cost and processing of repeated content, not delivery timing of the first response."
+    },
+    {
+      "id": 77,
+      "question": "You are choosing a Claude model for a high-volume classification task. Each classification is straightforward, latency requirements are tight, and per-request cost matters at scale. Which model would you choose?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "A mid-tier Claude model selected by default, because mid-tier models balance quality and cost in a way the team can apply across most tasks."
+        },
+        {
+          "id": "B",
+          "text": "Multiple Claude models in series, where each request runs through more than one model and the application combines the outputs into a final classification."
+        },
+        {
+          "id": "C",
+          "text": "A smaller, faster Claude model, because the task is straightforward and the workload prioritizes latency and per-request cost at scale."
+        },
+        {
+          "id": "D",
+          "text": "The largest, highest-capability Claude model, to maximize quality on every classification the application produces during normal operation across all requests."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: A smaller, faster model suits simple, high-volume classification where latency is tight and per-request cost matters at scale. Why the others are wrong: A. Defaulting to mid-tier is an assumption; this task does not need that capability or cost. B. Running several models in series adds latency and cost for a straightforward task. D. The largest model is slower and more expensive than this simple task requires."
+    },
+    {
+      "id": 78,
+      "question": "Your team is preparing a new Claude application for production, and the product team has asked for a cost projection. The team needs to estimate the cost based on expected request volume, average input length, and average output length. How would you build the projection?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Build a cost model that uses the average per-request cost from a similar Claude application the team built last year, scaling that figure by expected request volume."
+        },
+        {
+          "id": "B",
+          "text": "Build a cost model that combines expected request volume, average input tokens, average output tokens, the chosen model's pricing, and any caching benefits."
+        },
+        {
+          "id": "C",
+          "text": "Build a cost model that combines expected request volume and average input tokens, treating output tokens as a small enough share of cost to leave out of the projection."
+        },
+        {
+          "id": "D",
+          "text": "Build a cost model based on expected request volume and the chosen model's pricing, treating average input and output token counts as variables to be estimated post-launch."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: A sound projection combines request volume, average input and output tokens, the chosen model's pricing and any caching benefits. Why the others are wrong: A. A prior application's average cost may not match this application's volume, token sizes or model. C. Output tokens are usually billed at a higher rate, so leaving them out understates the cost. D. Leaving token counts to be estimated after launch defeats the purpose of a pre-production projection."
+    },
+    {
+      "id": 79,
+      "question": "Your Claude agent has too many tools, and many of them have overlapping functionality. The agent often picks an inappropriate tool when several could plausibly handle a request. How would you address the tool selection problem?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Add more tools to cover every variation of the requests the agent handles, on the grounds that more tools give the agent more accurate options to choose from."
+        },
+        {
+          "id": "B",
+          "text": "Remove all tools and rely on the agent's general capability instead, with the application losing the workflows that previously relied on tools."
+        },
+        {
+          "id": "C",
+          "text": "Add detailed examples to each tool's description so the agent can match incoming requests to the right tool by example, treating the examples as the team's selection mechanism."
+        },
+        {
+          "id": "D",
+          "text": "Restructure the tool set by consolidating overlapping tools, removing unused tools, and clarifying tool descriptions so each tool has a distinct purpose."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Consolidating overlapping tools, removing unused ones and clarifying descriptions gives each tool a distinct purpose, which makes selection reliable. Why the others are wrong: A. Adding more tools increases overlap and makes selection harder. B. Removing all tools eliminates the workflows that depend on them. C. Examples can help, but they do not fix an overlapping tool set; the tools themselves need restructuring."
+    },
+    {
+      "id": 80,
+      "question": "Your team uses several plugins across multiple Claude applications, and a recent plugin update introduced a regression. The team had not been tracking plugin versions, so the team cannot easily identify which version was previously working. How would you address this?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Stop using all plugins until the team can rebuild equivalent functionality directly into the application code, treating plugin avoidance as a way to remove version-related risk."
+        },
+        {
+          "id": "B",
+          "text": "Add explicit plugin version tracking to the project's configuration so the team can identify, pin, and upgrade plugin versions deliberately."
+        },
+        {
+          "id": "C",
+          "text": "Treat plugins as untrackable third-party code and rely on plugin authors to communicate breaking changes when they happen, with no internal version tracking."
+        },
+        {
+          "id": "D",
+          "text": "Upgrade every plugin to the latest version on a regular cadence to keep version drift small, on the grounds that drift contributes to regression risk."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Tracking plugin versions in the project configuration lets the team identify the last working version, pin it and upgrade deliberately. Why the others are wrong: A. Abandoning plugins removes useful functionality and is disproportionate to a tracking problem. C. Relying on plugin authors with no internal tracking leaves the team unable to diagnose regressions. D. Upgrading everything on a cadence does not provide version tracking and can introduce more regressions."
+    },
+    {
+      "id": 81,
+      "question": "You are designing an agent that processes vendor invoices. The work involves a small number of well-understood steps, but occasionally an invoice arrives in an unexpected format that requires the system to decide between rerouting, requesting clarification, or flagging for human review. The most appropriate architecture for this system is...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "A fully autonomous agent that handles every invoice from start to finish across all formats."
+        },
+        {
+          "id": "B",
+          "text": "A manager agent that delegates each step of standard invoice processing to a dedicated subagent, with a separate subagent handling each unexpected format."
+        },
+        {
+          "id": "C",
+          "text": "A single large prompt that processes every incoming invoice, both standard and unexpected, in one model call."
+        },
+        {
+          "id": "D",
+          "text": "A workflow for the standard path with an agent invoked at the decision point for unexpected formats."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: A deterministic workflow handles the well-understood standard path, and an agent is invoked only at the decision point for unexpected formats, using autonomy only where judgment is needed. Why the others are wrong: A. Full autonomy for every invoice adds cost and unpredictability to steps that are well understood. B. A manager with dedicated subagents for every step is over-engineered for a small number of known steps. C. A single large prompt for everything gives no control over the routing and review decisions."
+    },
+    {
+      "id": 82,
+      "question": "You are setting up a Claude application that will run a mix of multi-turn conversations and one-off requests. You want to use caching techniques to reduce token costs where they apply. A teammate suggests caching the model's output as well, so the application does not have to make duplicate Claude calls when similar queries arrive. You would apply prompt caching to...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Nothing, because prompt caching does not affect cost in any application that mixes multi-turn conversations and one-off requests in a single deployment."
+        },
+        {
+          "id": "B",
+          "text": "The model's output, treating the response from each request as cacheable content the application can return on similar future queries."
+        },
+        {
+          "id": "C",
+          "text": "Only the user's input portion of each request because user input is the part of the prompt that varies the most across the application's normal operation."
+        },
+        {
+          "id": "D",
+          "text": "The static portions of prompts that are repeated across requests, such as system prompts, instructions, or shared context."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Prompt caching applies to the static, repeated portions of prompts such as system prompts, instructions and shared context. Why the others are wrong: A. Prompt caching does reduce cost for repeated content, in mixed deployments too. B. Prompt caching does not cache model output; it caches repeated input content. C. User input varies the most, so it is the least suitable part to cache."
+    },
+    {
+      "id": 83,
+      "question": "A teammate has asked you to explain why the team's Claude application is billed for output tokens at a different rate than input tokens. They had assumed the rate was the same for both. How would you explain the difference?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Output tokens are typically billed at the same rate as input tokens, and the apparent rate difference is a billing error to report to Anthropic."
+        },
+        {
+          "id": "B",
+          "text": "Output tokens are typically billed at a lower rate than input tokens, because output tokens are cheaper to produce than input tokens are to process."
+        },
+        {
+          "id": "C",
+          "text": "Output tokens are not billed at all, because cost is determined entirely by the input tokens sent to the model on each request."
+        },
+        {
+          "id": "D",
+          "text": "Output tokens are typically billed at a higher rate than input tokens, and cost models for the application should reflect both rates separately."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: Output tokens are typically billed at a higher rate than input tokens, so a cost model should account for both rates separately. Why the others are wrong: A. The rates are normally different; this is not a billing error. B. Output tokens are generally more expensive, not cheaper. C. Output tokens are billed; cost depends on both input and output tokens."
+    },
+    {
+      "id": 84,
+      "question": "You are configuring Claude Code for a new project. The team needs to set permissions, default model selections, and environment-specific behavior at the project level so the configuration is consistent across all developers working on the repository. The Claude Code mechanism you would use is ...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "environment variables that each developer sets on their own machine when working with Claude Code on the project."
+        },
+        {
+          "id": "B",
+          "text": "a shared spreadsheet that lists configuration values for team members to reference and update by hand as the project evolves."
+        },
+        {
+          "id": "C",
+          "text": "the settings.json file, scoped at the project level so the configuration applies consistently across developers and persists with the repository."
+        },
+        {
+          "id": "D",
+          "text": "a system prompt embedded in every Claude Code conversation by each developer at the start of every session in the project."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: The project-level settings.json file applies permissions, default model and environment behavior consistently to everyone and persists with the repository. Why the others are wrong: A. Per-developer environment variables are inconsistent and are not shared through the repository. B. A manually updated spreadsheet is not enforced by Claude Code and drifts out of date. D. A system prompt pasted at the start of each session is manual and unreliable and cannot set permissions."
+    },
+    {
+      "id": 85,
+      "question": "The team is debating whether to integrate with the Claude API directly or through a third-party abstraction layer that supports multiple LLM providers. The team has identified that all current and projected use cases run on Claude, no internal customer has requested LLM portability, and the team’s product roadmap does not mention multi-provider support over the next two years. The third-party abstraction would add roughly 15 percent overhead in code complexity and introduce one additional dependency. Which integration approach would you recommend?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "The third-party abstraction layer, on the grounds that multi-provider support is valuable for any application as a matter of long-term flexibility across vendors."
+        },
+        {
+          "id": "B",
+          "text": "Direct integration with Claude through its SDK, because no multi-provider need exists and abstraction would add complexity that does not pay off."
+        },
+        {
+          "id": "C",
+          "text": "A custom multi-provider abstraction layer the team builds in-house so that the team controls every part of the abstraction the application uses for its API calls."
+        },
+        {
+          "id": "D",
+          "text": "Both integration paths in parallel, where the application uses each path on different runs to compare which performs better in production over time."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: With no multi-provider need now or in the roadmap, direct SDK integration avoids extra complexity and an additional dependency that would not pay off. Why the others are wrong: A. Portability that no one needs is speculative flexibility that costs complexity today. C. Building an in-house abstraction adds even more cost and maintenance for an unneeded benefit. D. Running both paths in parallel doubles the work and has no clear purpose."
+    },
+    {
+      "id": 86,
+      "question": "Your Claude application validates structured output but has been treating validation failures as terminal errors. Each validation failure causes the entire user request to fail. The team wants to handle validation failures more gracefully. How would you handle the validation failures?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Tell users that validation failures are unavoidable and instruct them to perform manual accuracy checks before relying on outputs."
+        },
+        {
+          "id": "B",
+          "text": "Disable output validation until the underlying cause of validation failures has been identified and addressed in a future release."
+        },
+        {
+          "id": "C",
+          "text": "Treat validation failures as a recognized error path that triggers retry, repair, or fallback logic before failing the user request."
+        },
+        {
+          "id": "D",
+          "text": "Pass validation failures directly to downstream systems and let each downstream system decide how to handle the malformed output."
+        }
+      ],
+      "correctAnswers": [
+        "C"
+      ],
+      "explanation": "Why C is correct: Treating validation failure as a recognized error path that triggers retry, repair or fallback logic recovers many requests before failing the user. Why the others are wrong: A. Shifting the burden to users instead of handling failures is poor design. B. Disabling validation lets malformed output through and hides the problem. D. Passing malformed output downstream moves the failure to where it is harder and costlier to handle."
+    },
+    {
+      "id": 87,
+      "question": "The product team has described a new Claude feature in business terms: “agents should help our analysts produce client memos faster.” You need to convert this into actionable technical requirements for the engineering team. Your first step would be to ...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "ask the analysts about the current memo production process to see where they think Claude could be introduced as a prompt-driven drafting step."
+        },
+        {
+          "id": "B",
+          "text": "examine what model capabilities and tier options are available and determine which best supports the memo drafting workflow described by the product team."
+        },
+        {
+          "id": "C",
+          "text": "assess what similar agent-based features have been built internally or in the industry and use those precedents to scope the technical approach."
+        },
+        {
+          "id": "D",
+          "text": "interpret the functional and infrastructure requirements implied by the business goal."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: The first step in turning a business goal into technical requirements is to interpret the functional and infrastructure requirements the goal implies. Why the others are wrong: A. Interviewing analysts is useful input but jumps ahead to a prompt-driven solution before requirements are defined. B. Choosing models and tiers is a design decision that comes after the requirements are understood. C. Precedents are secondary and do not define this feature's own requirements."
+    },
+    {
+      "id": 88,
+      "question": "A Claude application is producing outputs that drift away from the expected JSON format after several conversation turns. The first few turns produce correctly formatted output, but later turns gradually lose structure. How would you address the drift?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Truncate every response to the first few characters, validate that the truncated output matches the expected JSON structure, and log any mismatches for review."
+        },
+        {
+          "id": "B",
+          "text": "Identify the failure mode as format drift, examine how the conversation context evolves over turns, and address the drift through context management or output validation."
+        },
+        {
+          "id": "C",
+          "text": "Switch to a smaller Claude model and re-test the application to determine whether the drift persists across conversation turns."
+        },
+        {
+          "id": "D",
+          "text": "Restart the application after every turn and monitor whether the format remains consistent across subsequent interactions."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Recognizing the problem as format drift, examining how context evolves over the turns, and addressing it with context management or output validation targets the actual cause. Why the others are wrong: A. Truncating responses does not address drift and destroys the output. C. Switching models is a guess that does not diagnose why later turns lose structure. D. Restarting after every turn throws away conversation state and avoids the problem instead of solving it."
+    },
+    {
+      "id": 89,
+      "question": "You are setting up a Claude application that requires API keys for several external services. What is the best way to store the keys?",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Put the keys in the application's configuration file and check the configuration file into the team's repository alongside the rest of the source code."
+        },
+        {
+          "id": "B",
+          "text": "Store the keys in a secrets manager or environment-specific configuration that is not checked into source code, and load them at runtime."
+        },
+        {
+          "id": "C",
+          "text": "Use a single shared key across all external services, so any developer working on the application can find the keys easily during development."
+        },
+        {
+          "id": "D",
+          "text": "Email the keys to each developer as needed and have each developer paste the keys into their local environment when they begin working on the application's code."
+        }
+      ],
+      "correctAnswers": [
+        "B"
+      ],
+      "explanation": "Why B is correct: Keys belong in a secrets manager or environment-specific configuration kept out of source control and loaded at runtime. Why the others are wrong: A. Committing keys to the repository exposes them to everyone with access to the code and its history. C. A single shared key for all services increases the blast radius of any leak. D. Emailing keys is insecure and leaves copies in inboxes and local files."
+    },
+    {
+      "id": 90,
+      "question": "You are setting up a CI/CD pipeline for a new Claude application. The pipeline needs to run automated checks on every pull request before code can be merged. The CI/CD checks would include...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Automated tests of the Claude integration, linting, and any other standard quality gates the team applies to its other services."
+        },
+        {
+          "id": "B",
+          "text": "A full end-to-end production deployment on every pull request to catch all possible issues before any code is merged into the main branch."
+        },
+        {
+          "id": "C",
+          "text": "Automated tests of the Claude integration only, with linting handled separately during local development on each developer's machine."
+        },
+        {
+          "id": "D",
+          "text": "Automated linting and security scanning, with Claude integration testing handled manually during pre-release verification by a designated reviewer."
+        }
+      ],
+      "correctAnswers": [
+        "A"
+      ],
+      "explanation": "Why A is correct: CI should run automated tests of the Claude integration, linting and the other standard quality gates on every pull request. Why the others are wrong: B. A full production deployment per pull request is excessive, risky and costly. C. Linting only on developer machines is inconsistent and cannot be enforced before merge. D. Leaving Claude integration tests to manual verification skips automated checks where they matter most."
+    },
+    {
+      "id": 91,
+      "question": "Your team is choosing how to add a capability to a Claude application. You want to apply the appropriate option, whether built-in tool, custom tool, Skill, or MCP server, based on the use case. You would choose the option that...",
+      "choices": [
+        {
+          "id": "A",
+          "text": "Is the most familiar to the team based on prior experience with similar capabilities."
+        },
+        {
+          "id": "B",
+          "text": "Is the newest available option among built-in tools, custom tools, Skills, and MCP servers."
+        },
+        {
+          "id": "C",
+          "text": "Is the easiest to build given the team's current development tools and workflows."
+        },
+        {
+          "id": "D",
+          "text": "Matches the use case's scope, reuse needs, and integration context."
+        }
+      ],
+      "correctAnswers": [
+        "D"
+      ],
+      "explanation": "Why D is correct: The right option follows the use case: its scope, how much it will be reused, and the integration context decide between built-in tools, custom tools, Skills and MCP servers. Why the others are wrong: A. Familiarity is about the team's comfort, not the fit for the use case. B. Being the newest says nothing about whether an option fits. C. Ease of building is a secondary concern and ignores scope and reuse."
+    }
+  ]
+}

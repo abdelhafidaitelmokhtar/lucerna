@@ -78,6 +78,10 @@
 
   .topbar{ position:sticky; top:0; z-index:30; backdrop-filter:blur(10px); background:color-mix(in srgb, var(--paper) 88%, transparent); border-bottom:1px solid var(--border); padding-top:env(safe-area-inset-top,0px); }
 
+  .bank-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+  .bank-card{ all:unset; box-sizing:border-box; display:flex; flex-direction:column; padding:20px 22px; cursor:pointer; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-l); box-shadow:var(--shadow); color:var(--ink); transition:border-color .15s ease, transform .12s ease; }
+  .bank-card:hover{ border-color:var(--accent); transform:translateY(-1px); }
+  .bank-card:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .drop{ border:2px dashed var(--border-strong); border-radius:var(--radius-l); background:var(--surface); transition:border-color .15s ease, background .15s ease; }
   .drop.drag{ border-color:var(--accent); background:var(--accent-soft); }
 
@@ -211,31 +215,6 @@ window.LucernaCore = (function(){
   var Core = window.LucernaCore;
 
   /* ---------------------------------------------------------
-     DEMO QUIZ
-  --------------------------------------------------------- */
-  var DEMO_QUIZ = {
-    title: "Culture générale — Bases",
-    description: "Un petit échantillon pour découvrir Lucerna.",
-    questions: [
-      { id:1, question:"Quelle est la capitale de la France ?",
-        choices:[{id:"A",text:"Lyon"},{id:"B",text:"Paris"},{id:"C",text:"Marseille"},{id:"D",text:"Nice"}],
-        correctAnswers:["B"], explanation:"Paris est la capitale de la France depuis le Xe siècle." },
-      { id:2, question:"Combien de continents compte-t-on habituellement ?",
-        choices:[{id:"A",text:"5"},{id:"B",text:"6"},{id:"C",text:"7"},{id:"D",text:"4"}],
-        correctAnswers:["C"], explanation:"On distingue généralement 7 continents : Afrique, Amérique du Nord, Amérique du Sud, Antarctique, Asie, Europe, Océanie." },
-      { id:3, question:"Lesquels de ces éléments sont des langages de programmation ? (plusieurs réponses)",
-        choices:[{id:"A",text:"Python"},{id:"B",text:"HTML"},{id:"C",text:"JavaScript"},{id:"D",text:"Photoshop"}],
-        correctAnswers:["A","C"], explanation:"Python et JavaScript sont des langages de programmation. HTML est un langage de balisage, Photoshop un logiciel." },
-      { id:4, question:"Quel océan est le plus vaste ?",
-        choices:[{id:"A",text:"Atlantique"},{id:"B",text:"Indien"},{id:"C",text:"Arctique"},{id:"D",text:"Pacifique"}],
-        correctAnswers:["D"], explanation:"L'océan Pacifique couvre environ un tiers de la surface du globe." },
-      { id:5, question:"En quelle année a eu lieu la première mise en orbite d'un satellite artificiel ?",
-        choices:[{id:"A",text:"1957"},{id:"B",text:"1969"},{id:"C",text:"1945"},{id:"D",text:"1980"}],
-        correctAnswers:["A"], explanation:"Spoutnik 1 a été lancé par l'URSS le 4 octobre 1957." }
-    ]
-  };
-
-  /* ---------------------------------------------------------
      STATE
   --------------------------------------------------------- */
   var STORAGE_KEY = "lucerna:quiz-session:v2";
@@ -261,6 +240,8 @@ window.LucernaCore = (function(){
     correctionFilter: "all",   // all | incorrect
     error: null,
     importPreview: null,       // {quiz} pending confirmation on home
+    previewQuizId: null,       // "bank:<file>" | "import:<title>"
+    bank: { status: "loading", items: [] },   // items: {file, quizId, quiz}
     showConfirmSubmit: false,
     showJsonHelp: false,
     hasSavedSession: false,
@@ -426,7 +407,7 @@ window.LucernaCore = (function(){
 
   function startQuiz(quiz){
     state.quiz = quiz; state.current = 0; state.answers = {}; state.flags = {};
-    state.quizId = "import:" + quiz.title; state.options = defaultOptions();
+    state.quizId = state.previewQuizId || ("import:" + quiz.title); state.options = defaultOptions();
     state.visited = {}; state.startedAt = Date.now(); state.submittedAt = null;
     state.deadline = null; state.timeExpired = false; state.recorded = false; state.flagFilter = false;
     state.screen = "quiz"; state.importPreview = null; state.error = null;
@@ -466,10 +447,55 @@ window.LucernaCore = (function(){
       }
       state.error = null;
       state.importPreview = normalizeQuiz(data);
+      state.previewQuizId = "import:" + state.importPreview.title;
       render();
     };
     reader.onerror = function(){ state.error = "Impossible de lire ce fichier."; render(); };
     reader.readAsText(file);
+  }
+
+  /* ---------------------------------------------------------
+     BANK (qcm/index.json manifest; ?bank=<url> overrides it, used by tests)
+  --------------------------------------------------------- */
+  var BANK_MANIFEST = new URLSearchParams(location.search).get("bank") || "qcm/index.json";
+
+  function fetchJson(url){
+    return fetch(url, { cache: "no-cache" }).then(function(r){
+      if(!r.ok) throw new Error("HTTP " + r.status + " pour " + url);
+      return r.json();
+    });
+  }
+
+  function loadBank(){
+    var dir = BANK_MANIFEST.slice(0, BANK_MANIFEST.lastIndexOf("/") + 1);
+    fetchJson(BANK_MANIFEST).then(function(files){
+      if(!Array.isArray(files)) throw new Error("Le manifeste doit être une liste de fichiers.");
+      return Promise.all(files.map(function(file){
+        return fetchJson(dir + file).then(function(data){
+          var errors = validateQuiz(data);
+          if(errors.length){ console.warn("Lucerna: QCM ignoré (" + file + ")", errors); return null; }
+          return { file: file, quizId: "bank:" + file, quiz: normalizeQuiz(data) };
+        }).catch(function(err){ console.warn("Lucerna: QCM introuvable (" + file + ")", err); return null; });
+      }));
+    }).then(function(items){
+      state.bank = { status: "ready", items: items.filter(Boolean) };
+      if(state.screen === "home") render();
+    }).catch(function(err){
+      console.warn("Lucerna: banque indisponible", err);
+      state.bank = { status: "error", items: [] };
+      if(state.screen === "home") render();
+    });
+  }
+
+  function openBankQuiz(file){
+    var item = state.bank.items.filter(function(it){ return it.file === file; })[0];
+    if(!item) return;
+    state.error = null;
+    state.importPreview = item.quiz;
+    state.previewQuizId = item.quizId;
+    render();
+    var p = document.getElementById("preview-card");
+    if(p) p.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
   function selectChoice(q, choiceId){
@@ -590,29 +616,31 @@ window.LucernaCore = (function(){
     var preview = "";
     if(state.importPreview){
       var p = state.importPreview;
-      preview = '<div class="card fade-in" style="padding:26px;margin-top:18px;">' +
+      var fromBank = state.previewQuizId && state.previewQuizId.indexOf("bank:") === 0;
+      preview = '<div class="card fade-in" id="preview-card" style="padding:26px;margin-top:18px;scroll-margin-top:90px;">' +
         '<div class="status-pill pill-correct" style="margin-bottom:12px;">' +
-        '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg> Fichier valide</div>' +
+        '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg> ' + (fromBank ? 'QCM de la banque' : 'Fichier valide') + '</div>' +
         '<h3 class="display" style="font-size:1.4rem;margin:0 0 6px;">' + esc(p.title) + '</h3>' +
         (p.description ? '<p style="color:var(--ink-soft);margin:0 0 14px;">' + esc(p.description) + '</p>' : '') +
         '<div style="color:var(--ink-soft);font-size:0.95rem;margin-bottom:18px;">' + p.questions.length + ' question' + (p.questions.length>1?'s':'') + ' détectée' + (p.questions.length>1?'s':'') + '.</div>' +
         '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
         '<button class="btn btn-primary" data-action="begin-imported">Commencer le QCM</button>' +
-        '<button class="btn btn-ghost" data-action="cancel-import">Choisir un autre fichier</button>' +
+        '<button class="btn btn-ghost" data-action="cancel-import">' + (fromBank ? 'Choisir un autre QCM' : 'Choisir un autre fichier') + '</button>' +
         '</div></div>';
     }
 
     return topbar() +
     '<div class="wrap" style="padding-top:52px;padding-bottom:80px;">' +
       resumeBlock +
-      '<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center;" class="home-grid">' +
+      renderBank() +
+      preview +
+      '<div style="display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center;margin-top:56px;" class="home-grid">' +
         '<div class="fade-in">' +
-          '<div class="status-pill" style="background:var(--accent-soft);color:var(--accent-strong);margin-bottom:18px;">' + logo(14) + ' Entraînement &amp; examens blancs</div>' +
-          '<h1 class="display" style="font-size:clamp(2.2rem,4.5vw,3.4rem);line-height:1.06;margin:0 0 18px;font-weight:600;">Importez un QCM.<br>Passez-le. Comprenez vos erreurs.</h1>' +
+          '<div class="status-pill" style="background:var(--accent-soft);color:var(--accent-strong);margin-bottom:18px;">' + logo(14) + ' Votre propre QCM</div>' +
+          '<h2 class="display" style="font-size:clamp(1.8rem,3.4vw,2.6rem);line-height:1.08;margin:0 0 18px;font-weight:600;">Importez un QCM.<br>Passez-le. Comprenez vos erreurs.</h2>' +
           '<p style="color:var(--ink-soft);font-size:1.08rem;line-height:1.6;max-width:46ch;margin:0 0 28px;">Lucerna transforme un simple fichier JSON en une session de révision complète : navigation libre, questions à marquer, récapitulatif avant validation et correction détaillée à la fin.</p>' +
           '<div style="display:flex;gap:14px;flex-wrap:wrap;">' +
           '<button class="btn btn-primary" data-action="pick-file"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M12 4 7 9M12 4l5 5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round"/></svg> Importer un QCM</button>' +
-          '<button class="btn btn-ghost" data-action="try-demo">Essayer avec un exemple</button>' +
           '</div>' +
           '<button class="btn btn-ghost btn-sm" data-action="show-json-help" style="margin-top:18px;padding-left:0;color:var(--ink-soft);">Voir le format JSON attendu →</button>' +
         '</div>' +
@@ -628,7 +656,6 @@ window.LucernaCore = (function(){
           errorBanner() +
         '</div>' +
       '</div>' +
-      preview +
       '<div class="fade-in" style="margin-top:64px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;" id="feature-grid">' +
         featureCard("Navigation libre","Passez d\'une question à l\'autre à tout moment, revenez en arrière, sautez une question difficile sans jamais perdre vos réponses.") +
         featureCard("Marquage pour révision","Signalez les questions à revoir avant de valider, et retrouvez-les d\'un coup d\'œil dans le récapitulatif.") +
@@ -636,6 +663,30 @@ window.LucernaCore = (function(){
       '</div>' +
     '</div>' +
     jsonHelpModal();
+  }
+
+  function renderBank(){
+    var b = state.bank, body;
+    if(b.status === "loading"){
+      body = '<div style="color:var(--ink-soft);">Chargement des QCM…</div>';
+    } else if(b.status === "error"){
+      body = '<div id="bank-offline" class="card" style="padding:18px 20px;color:var(--ink-soft);">Banque indisponible hors ligne — importez un fichier JSON</div>';
+    } else if(!b.items.length){
+      body = '<div class="card" style="padding:18px 20px;color:var(--ink-soft);">Aucun QCM disponible pour le moment.</div>';
+    } else {
+      body = '<div class="bank-grid" id="bank-grid">' + b.items.map(function(it){
+        var n = it.quiz.questions.length;
+        return '<button type="button" class="card bank-card" data-action="open-bank" data-file="' + esc(it.file) + '">' +
+          '<div style="font-weight:800;font-size:1.05rem;">' + esc(it.quiz.title) + '</div>' +
+          (it.quiz.description ? '<div style="color:var(--ink-soft);font-size:0.92rem;margin-top:4px;">' + esc(it.quiz.description) + '</div>' : '') +
+          '<div style="color:var(--accent-strong);font-weight:700;font-size:0.85rem;margin-top:12px;">' + n + ' question' + (n > 1 ? 's' : '') + '</div>' +
+        '</button>';
+      }).join("") + '</div>';
+    }
+    return '<section class="fade-in" aria-labelledby="bank-title">' +
+      '<div class="status-pill" style="background:var(--accent-soft);color:var(--accent-strong);margin-bottom:14px;">' + logo(14) + ' Entraînement &amp; examens blancs</div>' +
+      '<h1 id="bank-title" class="display" style="font-size:clamp(2rem,4vw,3rem);line-height:1.06;margin:0 0 18px;font-weight:600;">QCM disponibles</h1>' +
+      body + '</section>';
   }
 
   function featureCard(title, text){
@@ -955,9 +1006,9 @@ window.LucernaCore = (function(){
         else { render(); setTimeout(function(){ var f2=document.getElementById("file-input"); if(f2) f2.click(); },0); }
         break;
       }
-      case "try-demo": state.error=null; state.importPreview = JSON.parse(JSON.stringify(DEMO_QUIZ)); render(); break;
+      case "open-bank": openBankQuiz(el.getAttribute("data-file")); break;
       case "begin-imported": if(state.importPreview) startQuiz(state.importPreview); break;
-      case "cancel-import": state.importPreview = null; render(); break;
+      case "cancel-import": state.importPreview = null; state.previewQuizId = null; render(); break;
       case "show-json-help": state.showJsonHelp = true; render(); break;
       case "close-json-help": state.showJsonHelp = false; render(); break;
       case "resume": { var s = loadSavedSession(); if(s) resumeSession(s); break; }
@@ -1004,6 +1055,7 @@ window.LucernaCore = (function(){
   var saved = loadSavedSession();
   if(saved && saved.quiz && saved.screen !== "results"){ state.hasSavedSession = true; }
   render();
+  loadBank();
 })();
 </script>
 </body>

@@ -1,0 +1,8 @@
+{
+  "title": "Fixture QCM",
+  "description": "Description <b>x</b>",
+  "questions": [
+    { "id": 1, "question": "Q1 ?", "choices": [{"id":"A","text":"Alpha"},{"id":"B","text":"Beta"},{"id":"C","text":"Gamma"},{"id":"D","text":"Delta"}], "correctAnswers": ["B"], "explanation": "Why B is correct." },
+    { "id": 2, "question": "Q2 ?", "choices": [{"id":"A","text":"Un"},{"id":"B","text":"Deux"},{"id":"C","text":"Trois"}], "correctAnswers": ["A","C"], "explanation": "A and C." }
+  ]
+}
