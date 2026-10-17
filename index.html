@@ -78,6 +78,11 @@
 
   .topbar{ position:sticky; top:0; z-index:30; backdrop-filter:blur(10px); background:color-mix(in srgb, var(--paper) 88%, transparent); border-bottom:1px solid var(--border); padding-top:env(safe-area-inset-top,0px); }
 
+  .launch-options{ background:var(--surface-soft); border-radius:var(--radius-m); padding:14px 16px; margin-bottom:18px; }
+  .opt-row{ display:flex; align-items:center; gap:10px; padding:5px 0; cursor:pointer; font-weight:600; }
+  .opt-row input{ width:18px; height:18px; accent-color:var(--accent); }
+  .opt-duration{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; padding:6px 0 0 28px; font-weight:600; }
+  .opt-duration input{ width:64px; padding:7px 9px; border-radius:var(--radius-s); border:1.5px solid var(--border-strong); background:var(--surface); color:var(--ink); font:inherit; }
   .bank-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
   .bank-card{ all:unset; box-sizing:border-box; display:flex; flex-direction:column; padding:20px 22px; cursor:pointer; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-l); box-shadow:var(--shadow); color:var(--ink); transition:border-color .15s ease, transform .12s ease; }
   .bank-card:hover{ border-color:var(--accent); transform:translateY(-1px); }
@@ -221,6 +226,7 @@ window.LucernaCore = (function(){
   var LEGACY_STORAGE_KEY = "lucerna:quiz-session:v1";
   var THEME_KEY = "lucerna:theme";
   function defaultOptions(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, durationMin:90 }; }
+  function defaultLaunch(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, hours:"1", minutes:"30" }; }
 
   var state = {
     screen: "home",           // home | quiz | review | results
@@ -241,6 +247,8 @@ window.LucernaCore = (function(){
     error: null,
     importPreview: null,       // {quiz} pending confirmation on home
     previewQuizId: null,       // "bank:<file>" | "import:<title>"
+    launch: defaultLaunch(),   // pre-start options form (preview card)
+    launchError: null,
     bank: { status: "loading", items: [] },   // items: {file, quizId, quiz}
     showConfirmSubmit: false,
     showJsonHelp: false,
@@ -405,9 +413,10 @@ window.LucernaCore = (function(){
     });
   }
 
-  function startQuiz(quiz){
-    state.quiz = quiz; state.current = 0; state.answers = {}; state.flags = {};
-    state.quizId = state.previewQuizId || ("import:" + quiz.title); state.options = defaultOptions();
+  function startQuiz(quiz, quizId, options){
+    options = options || defaultOptions();
+    state.quiz = Core.prepareQuiz(quiz, options); state.current = 0; state.answers = {}; state.flags = {};
+    state.quizId = quizId || ("import:" + quiz.title); state.options = options;
     state.visited = {}; state.startedAt = Date.now(); state.submittedAt = null;
     state.deadline = null; state.timeExpired = false; state.recorded = false; state.flagFilter = false;
     state.screen = "quiz"; state.importPreview = null; state.error = null;
@@ -448,6 +457,7 @@ window.LucernaCore = (function(){
       state.error = null;
       state.importPreview = normalizeQuiz(data);
       state.previewQuizId = "import:" + state.importPreview.title;
+      state.launch = defaultLaunch(); state.launchError = null;
       render();
     };
     reader.onerror = function(){ state.error = "Impossible de lire ce fichier."; render(); };
@@ -493,6 +503,7 @@ window.LucernaCore = (function(){
     state.error = null;
     state.importPreview = item.quiz;
     state.previewQuizId = item.quizId;
+    state.launch = defaultLaunch(); state.launchError = null;
     render();
     var p = document.getElementById("preview-card");
     if(p) p.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -554,7 +565,20 @@ window.LucernaCore = (function(){
 
   function retakeSameQuiz(){
     var q = state.quiz; if(!q) return;
-    startQuiz(q);
+    startQuiz(q, state.quizId, state.options);
+  }
+
+  function beginFromPreview(){
+    var l = state.launch, durationMin = 90;
+    if(l.exam){
+      var d = Core.parseDuration(l.hours, l.minutes);
+      if(!d.ok){ state.launchError = d.error; render(); return; }
+      durationMin = d.minutes;
+    }
+    state.launchError = null;
+    startQuiz(state.importPreview, state.previewQuizId, {
+      shuffleQuestions: l.shuffleQuestions, shuffleChoices: l.shuffleChoices, exam: l.exam, durationMin: durationMin
+    });
   }
 
   /* ---------------------------------------------------------
@@ -623,6 +647,7 @@ window.LucernaCore = (function(){
         '<h3 class="display" style="font-size:1.4rem;margin:0 0 6px;">' + esc(p.title) + '</h3>' +
         (p.description ? '<p style="color:var(--ink-soft);margin:0 0 14px;">' + esc(p.description) + '</p>' : '') +
         '<div style="color:var(--ink-soft);font-size:0.95rem;margin-bottom:18px;">' + p.questions.length + ' question' + (p.questions.length>1?'s':'') + ' détectée' + (p.questions.length>1?'s':'') + '.</div>' +
+        renderLaunchOptions() +
         '<div style="display:flex;gap:12px;flex-wrap:wrap;">' +
         '<button class="btn btn-primary" data-action="begin-imported">Commencer le QCM</button>' +
         '<button class="btn btn-ghost" data-action="cancel-import">' + (fromBank ? 'Choisir un autre QCM' : 'Choisir un autre fichier') + '</button>' +
@@ -663,6 +688,29 @@ window.LucernaCore = (function(){
       '</div>' +
     '</div>' +
     jsonHelpModal();
+  }
+
+  function renderLaunchOptions(){
+    var l = state.launch;
+    function check(id, field, label){
+      return '<label class="opt-row" for="' + id + '"><input type="checkbox" id="' + id + '" data-launch="' + field + '"' + (l[field] ? ' checked' : '') + '> ' + label + '</label>';
+    }
+    var duration = l.exam
+      ? '<div class="opt-duration">' +
+          '<label>Durée <input type="number" id="opt-hours" data-launch="hours" min="0" max="10" step="1" inputmode="numeric" value="' + esc(l.hours) + '" aria-label="Heures"> h</label>' +
+          '<label><input type="number" id="opt-minutes" data-launch="minutes" min="0" max="59" step="1" inputmode="numeric" value="' + esc(l.minutes) + '" aria-label="Minutes"> min</label>' +
+        '</div>'
+      : '';
+    var err = state.launchError
+      ? '<div id="launch-error" role="alert" style="color:var(--danger);font-weight:700;font-size:0.9rem;margin-top:8px;">' + esc(state.launchError) + '</div>'
+      : '';
+    return '<div class="launch-options">' +
+      '<div style="font-weight:800;font-size:0.85rem;margin-bottom:8px;">Avant de commencer</div>' +
+      check("opt-shuffle-q", "shuffleQuestions", "Mélanger les questions") +
+      check("opt-shuffle-c", "shuffleChoices", "Mélanger les choix de réponse") +
+      check("opt-exam", "exam", "Mode examen avec minuteur") +
+      duration + err +
+    '</div>';
   }
 
   function renderBank(){
@@ -902,7 +950,14 @@ window.LucernaCore = (function(){
       var answered = isAnswered(q);
       var correct = answered && isCorrectAnswer(q);
       var sel = state.answers[qid(q)] || [];
-      var choiceText = function(id){ var c = q.choices.filter(function(c){return c.id===id;})[0]; return c ? c.text : id; };
+      var choiceLabel = function(id){
+        var idx = -1;
+        q.choices.forEach(function(c, ci){ if(c.id === id) idx = ci; });
+        if(idx === -1) return esc(id);
+        var c = q.choices[idx], shown = choiceLetter(idx);
+        var orig = (c.origLetter && c.origLetter !== shown) ? '<span class="orig-letter"> (' + esc(c.origLetter) + ' dans l\'explication)</span>' : '';
+        return shown + orig + '. ' + esc(c.text);
+      };
 
       var statusPill = !answered
         ? '<span class="status-pill pill-unanswered">○ Sans réponse</span>'
@@ -912,11 +967,11 @@ window.LucernaCore = (function(){
         ? '<div style="color:var(--ink-faint);font-style:italic;">Aucune réponse sélectionnée</div>'
         : '<div style="display:flex;flex-direction:column;gap:4px;">' + sel.map(function(id){
             var ok = q.correctAnswers.indexOf(id) !== -1;
-            return '<div style="color:'+(ok?'var(--success)':'var(--danger)')+';font-weight:700;">' + esc(id) + '. ' + esc(choiceText(id)) + (ok ? ' ✓' : ' ✗') + '</div>';
+            return '<div style="color:'+(ok?'var(--success)':'var(--danger)')+';font-weight:700;">' + choiceLabel(id) + (ok ? ' ✓' : ' ✗') + '</div>';
           }).join("") + '</div>';
 
       var correctAnswer = '<div style="display:flex;flex-direction:column;gap:4px;">' + q.correctAnswers.map(function(id){
-        return '<div style="color:var(--success);font-weight:700;">' + esc(id) + '. ' + esc(choiceText(id)) + ' ✓</div>';
+        return '<div style="color:var(--success);font-weight:700;">' + choiceLabel(id) + ' ✓</div>';
       }).join("") + '</div>';
 
       return '<div class="card" style="padding:24px;text-align:left;">' +
@@ -1007,7 +1062,7 @@ window.LucernaCore = (function(){
         break;
       }
       case "open-bank": openBankQuiz(el.getAttribute("data-file")); break;
-      case "begin-imported": if(state.importPreview) startQuiz(state.importPreview); break;
+      case "begin-imported": if(state.importPreview) beginFromPreview(); break;
       case "cancel-import": state.importPreview = null; state.previewQuizId = null; render(); break;
       case "show-json-help": state.showJsonHelp = true; render(); break;
       case "close-json-help": state.showJsonHelp = false; render(); break;
@@ -1038,6 +1093,16 @@ window.LucernaCore = (function(){
       case "filter-incorrect": state.correctionFilter = "incorrect"; render(); break;
     }
   });
+
+  function onLaunchInput(e){
+    var el = e.target;
+    var field = el && el.getAttribute && el.getAttribute("data-launch");
+    if(!field) return;
+    state.launch[field] = el.type === "checkbox" ? el.checked : el.value;
+    if(field === "exam") render();
+  }
+  document.addEventListener("change", onLaunchInput);
+  document.addEventListener("input", onLaunchInput);
 
   document.addEventListener("keydown", function(e){
     if(state.screen !== "quiz") return;
