@@ -78,6 +78,8 @@
 
   .topbar{ position:sticky; top:0; z-index:30; backdrop-filter:blur(10px); background:color-mix(in srgb, var(--paper) 88%, transparent); border-bottom:1px solid var(--border); padding-top:env(safe-area-inset-top,0px); }
 
+  .exam-timer{ font-variant-numeric:tabular-nums; font-weight:800; font-size:0.9rem; padding:5px 11px; border-radius:999px; background:var(--accent-soft); color:var(--accent-strong); white-space:nowrap; }
+  .exam-timer.warn{ background:var(--danger-soft); color:var(--danger); }
   .launch-options{ background:var(--surface-soft); border-radius:var(--radius-m); padding:14px 16px; margin-bottom:18px; }
   .opt-row{ display:flex; align-items:center; gap:10px; padding:5px 0; cursor:pointer; font-weight:600; }
   .opt-row input{ width:18px; height:18px; accent-color:var(--accent); }
@@ -225,6 +227,7 @@ window.LucernaCore = (function(){
   var STORAGE_KEY = "lucerna:quiz-session:v2";
   var LEGACY_STORAGE_KEY = "lucerna:quiz-session:v1";
   var THEME_KEY = "lucerna:theme";
+  var TIMER_WARN_MS = 5 * 60000;
   function defaultOptions(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, durationMin:90 }; }
   function defaultLaunch(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, hours:"1", minutes:"30" }; }
 
@@ -251,6 +254,7 @@ window.LucernaCore = (function(){
     launchError: null,
     bank: { status: "loading", items: [] },   // items: {file, quizId, quiz}
     showConfirmSubmit: false,
+    showConfirmAbandon: false,
     showJsonHelp: false,
     hasSavedSession: false,
     navOpen: false
@@ -418,7 +422,8 @@ window.LucernaCore = (function(){
     state.quiz = Core.prepareQuiz(quiz, options); state.current = 0; state.answers = {}; state.flags = {};
     state.quizId = quizId || ("import:" + quiz.title); state.options = options;
     state.visited = {}; state.startedAt = Date.now(); state.submittedAt = null;
-    state.deadline = null; state.timeExpired = false; state.recorded = false; state.flagFilter = false;
+    state.deadline = options.exam ? state.startedAt + options.durationMin * 60000 : null;
+    state.timeExpired = false; state.recorded = false; state.flagFilter = false;
     state.screen = "quiz"; state.importPreview = null; state.error = null;
     var first = quiz.questions[0]; if(first) state.visited[qid(first)] = true;
     save(); render();
@@ -434,7 +439,7 @@ window.LucernaCore = (function(){
     state.submittedAt = saved.submittedAt || null;
     state.timeExpired = !!saved.timeExpired; state.recorded = !!saved.recorded;
     state.flagFilter = !!saved.flagFilter;
-    state.screen = saved.screen === "results" ? "results" : "quiz";
+    state.screen = (saved.screen === "results" || saved.screen === "review") ? saved.screen : "quiz";
     render();
   }
 
@@ -547,8 +552,10 @@ window.LucernaCore = (function(){
     if(c.unanswered > 0){ state.showConfirmSubmit = true; render(); }
     else { doSubmit(); }
   }
-  function doSubmit(){
-    state.showConfirmSubmit = false;
+  function doSubmit(opts){
+    opts = opts || {};
+    state.showConfirmSubmit = false; state.showConfirmAbandon = false;
+    state.timeExpired = !!opts.expired;
     state.submittedAt = Date.now();
     state.screen = "results";
     state.correctionFilter = "all";
@@ -817,6 +824,7 @@ window.LucernaCore = (function(){
         '<span style="color:var(--ink-soft);font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(state.quiz.title) + '</span></div>' +
         '<div style="display:flex;align-items:center;gap:10px;">' +
         '<span style="font-weight:700;font-size:0.88rem;color:var(--ink-soft);white-space:nowrap;">Question ' + (state.current+1) + ' / ' + totalQ() + '</span>' +
+        examTimer() +
         sunMoonBtn() +
         '</div>' +
       '</div>' +
@@ -835,8 +843,43 @@ window.LucernaCore = (function(){
     return header +
       '<div class="wrap" style="padding:30px 20px 60px;display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start;" id="quiz-grid">' +
         '<div>' + renderQuestionCard(q) + nav + '</div>' +
-        '<div>' + renderNavGrid() + '</div>' +
-      '</div>';
+        '<div>' + renderNavGrid() + abandonButton() + '</div>' +
+      '</div>' + abandonModal();
+  }
+
+  function examTimer(){
+    if(!state.deadline || state.submittedAt) return "";
+    var left = state.deadline - Date.now();
+    return '<span id="exam-timer" class="exam-timer' + (left <= TIMER_WARN_MS ? ' warn' : '') + '" role="timer" aria-label="Temps restant">' +
+      Core.formatClock(left) + '</span>';
+  }
+
+  function abandonButton(){
+    if(!state.options.exam) return "";
+    return '<button class="btn btn-ghost btn-sm" data-action="abandon-exam" style="margin-top:14px;width:100%;color:var(--danger);border-color:var(--danger);">Abandonner l\'examen</button>';
+  }
+
+  function abandonModal(){
+    if(!state.showConfirmAbandon) return "";
+    var c = counts();
+    return '<div class="modal-back" data-action="cancel-abandon"><div class="modal fade-in" role="alertdialog" aria-modal="true">' +
+      '<h3 class="display" style="margin:0 0 8px;font-size:1.2rem;">Abandonner l\'examen ?</h3>' +
+      '<p style="color:var(--ink-soft);margin:0 0 20px;">L\'examen sera soumis maintenant avec vos réponses actuelles (' + c.answered + ' / ' + c.total + ') et enregistré dans votre historique.</p>' +
+      '<div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">' +
+      '<button class="btn btn-ghost" data-action="cancel-abandon">Continuer l\'examen</button>' +
+      '<button class="btn btn-danger" data-action="confirm-abandon">Abandonner et soumettre</button>' +
+      '</div></div></div>';
+  }
+
+  function tickTimer(){
+    if(!state.deadline || state.submittedAt || (state.screen !== "quiz" && state.screen !== "review")) return;
+    var left = state.deadline - Date.now();
+    if(left <= 0){ doSubmit({ expired: true }); return; }
+    var el = document.getElementById("exam-timer");
+    if(el){
+      el.textContent = Core.formatClock(left);
+      el.classList.toggle("warn", left <= TIMER_WARN_MS);
+    }
   }
 
   /* ---------------------------------------------------------
@@ -856,7 +899,7 @@ window.LucernaCore = (function(){
       '</button>';
     }).join('<div style="height:8px;"></div>');
 
-    return topbar() +
+    return topbar(examTimer()) +
     '<div class="wrap" style="padding:44px 20px 70px;max-width:820px;">' +
       '<h1 class="display" style="font-size:1.9rem;margin:0 0 6px;font-weight:600;">Récapitulatif avant soumission</h1>' +
       '<p style="color:var(--ink-soft);margin:0 0 26px;">Vérifiez votre progression puis validez votre QCM.</p>' +
@@ -871,7 +914,8 @@ window.LucernaCore = (function(){
         '<button class="btn btn-ghost" data-action="back-to-quiz">← Retour au QCM</button>' +
         '<button class="btn btn-primary" data-action="submit">Soumettre le QCM</button>' +
       '</div>' +
-    '</div>' + confirmSubmitModal();
+      abandonButton() +
+    '</div>' + confirmSubmitModal() + abandonModal();
   }
 
   function statTile(n,label,color){
@@ -914,7 +958,8 @@ window.LucernaCore = (function(){
         '<div class="display" style="font-size:2.1rem;font-weight:700;">' + r.correct + '/' + r.total + '</div>' +
         '<div style="color:var(--ink-soft);font-weight:700;font-size:0.95rem;">' + r.pct + '%</div>' +
         '</div></div>' +
-      '<h2 class="display" style="font-size:1.5rem;margin:10px 0 30px;font-weight:600;">' + resultMessage(r.pct) + '</h2>' +
+      '<h2 class="display" style="font-size:1.5rem;margin:10px 0 ' + (state.options.exam ? '14px' : '30px') + ';font-weight:600;">' + resultMessage(r.pct) + '</h2>' +
+      examSummary() +
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:34px;">' +
         statTile(r.correct,"correctes","var(--success)") +
         statTile(r.incorrect,"incorrectes","var(--danger)") +
@@ -927,6 +972,20 @@ window.LucernaCore = (function(){
       '</div>' +
     '</div>' +
     renderCorrection();
+  }
+
+  function usedMs(){
+    var end = state.submittedAt || Date.now();
+    if(state.deadline) end = Math.min(end, state.deadline);
+    return end - state.startedAt;
+  }
+
+  function examSummary(){
+    if(!state.options.exam) return "";
+    return '<div id="exam-summary" style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:28px;color:var(--ink-soft);font-weight:600;">' +
+      (state.timeExpired ? '<span class="status-pill pill-incorrect">⏱ Temps écoulé</span>' : '<span class="status-pill pill-flag">Examen</span>') +
+      '<span>Temps utilisé : ' + Core.formatDuration(usedMs()) + '</span>' +
+    '</div>';
   }
 
   function resultMessage(pct){
@@ -1082,6 +1141,9 @@ window.LucernaCore = (function(){
       case "submit": requestSubmit(); break;
       case "cancel-submit": state.showConfirmSubmit = false; render(); break;
       case "confirm-submit": doSubmit(); break;
+      case "abandon-exam": state.showConfirmAbandon = true; render(); break;
+      case "cancel-abandon": state.showConfirmAbandon = false; render(); break;
+      case "confirm-abandon": doSubmit(); break;
       case "show-correction": {
         var target = document.querySelector(".wrap:nth-of-type(2)");
         window.scrollTo({top: document.body.scrollHeight*0.32, behavior:"smooth"});
@@ -1118,9 +1180,17 @@ window.LucernaCore = (function(){
   --------------------------------------------------------- */
   applyTheme();
   var saved = loadSavedSession();
-  if(saved && saved.quiz && saved.screen !== "results"){ state.hasSavedSession = true; }
-  render();
+  var examInProgress = saved && saved.options && saved.options.exam && !saved.submittedAt && saved.deadline;
+  if(examInProgress){
+    // An exam can't be left silently: go straight back in, or submit if time ran out meanwhile.
+    resumeSession(saved);
+    if(Date.now() >= saved.deadline) doSubmit({ expired: true });
+  } else {
+    if(saved && saved.quiz && saved.screen !== "results"){ state.hasSavedSession = true; }
+    render();
+  }
   loadBank();
+  setInterval(tickTimer, 1000);
 })();
 </script>
 </body>
