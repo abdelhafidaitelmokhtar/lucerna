@@ -80,3 +80,24 @@ test("options: retake keeps options", async function(){
   assert.equal(s.options.shuffleQuestions, true);
   assert.equal(s.quizId, "bank:good.json");
 });
+
+test("options: letters in duration block start", async function(){
+  await openFixturePreview();
+  setInput("#opt-exam", true);
+  await app.waitFor(function(){ return app.$("#opt-hours"); });
+  setInput("#opt-hours", "abc");
+  app.click('[data-action="begin-imported"]');
+  var err = await app.waitFor(function(){ return app.$("#launch-error"); });
+  assert.match(err.textContent, /nombres entiers/);
+  assert.equal(app.win.localStorage.getItem("lucerna:quiz-session:v2"), null);
+});
+
+test("options: shuffled quiz marks the first shown question as visited", async function(){
+  await openFixturePreview();
+  setInput("#opt-shuffle-q", true);
+  app.win.Math.random = function(){ return 0; };
+  app.click('[data-action="begin-imported"]');
+  await app.waitFor(function(){ return app.$("#question-card"); });
+  var s = JSON.parse(app.win.localStorage.getItem("lucerna:quiz-session:v2"));
+  assert.deepEqual(Object.keys(s.visited), [String(s.quiz.questions[0].id)]);
+});

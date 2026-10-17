@@ -491,7 +491,7 @@ window.LucernaCore = (function(){
     state.deadline = options.exam ? state.startedAt + options.durationMin * 60000 : null;
     state.timeExpired = false; state.recorded = false; state.flagFilter = false;
     state.screen = "quiz"; state.importPreview = null; state.error = null;
-    var first = quiz.questions[0]; if(first) state.visited[qid(first)] = true;
+    var first = state.quiz.questions[0]; if(first) state.visited[qid(first)] = true;
     save(); render();
   }
 
@@ -795,8 +795,8 @@ window.LucernaCore = (function(){
     }
     var duration = l.exam
       ? '<div class="opt-duration">' +
-          '<label>Durée <input type="number" id="opt-hours" data-launch="hours" min="0" max="10" step="1" inputmode="numeric" value="' + esc(l.hours) + '" aria-label="Heures"> h</label>' +
-          '<label><input type="number" id="opt-minutes" data-launch="minutes" min="0" max="59" step="1" inputmode="numeric" value="' + esc(l.minutes) + '" aria-label="Minutes"> min</label>' +
+          '<label>Durée <input type="text" id="opt-hours" data-launch="hours" inputmode="numeric" maxlength="2" autocomplete="off" value="' + esc(l.hours) + '" aria-label="Heures"> h</label>' +
+          '<label><input type="text" id="opt-minutes" data-launch="minutes" inputmode="numeric" maxlength="3" autocomplete="off" value="' + esc(l.minutes) + '" aria-label="Minutes"> min</label>' +
         '</div>'
       : '';
     var err = state.launchError
@@ -1371,6 +1371,13 @@ window.LucernaCore = (function(){
   });
 
   window.addEventListener("resize", function(){ injectResponsiveTweaks(); });
+  // Browser print (Ctrl+P, menu) must also print the full correction, whatever the filter.
+  window.addEventListener("beforeprint", function(){
+    if(state.screen === "results" && !state.printing){ state.printing = true; render(); }
+  });
+  window.addEventListener("afterprint", function(){
+    if(state.printing){ state.printing = false; render(); }
+  });
 
   /* ---------------------------------------------------------
      INIT

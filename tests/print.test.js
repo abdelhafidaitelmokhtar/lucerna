@@ -24,3 +24,13 @@ test("print: header present", async function(){
   assert.match(h.textContent, /Fixture QCM/);
   assert.match(h.textContent, /%/);
 });
+
+test("print: browser print (Ctrl+P) also prints all questions", async function(){
+  await finishFixtureQuiz();
+  app.click('[data-action="filter-incorrect"]');
+  await app.waitFor(function(){ return app.$$(".correction-item").length === 1; });
+  app.win.dispatchEvent(new app.win.Event("beforeprint"));
+  assert.equal(app.$$(".correction-item").length, 2, "full correction while printing");
+  app.win.dispatchEvent(new app.win.Event("afterprint"));
+  assert.equal(app.$$(".correction-item").length, 1, "filter restored");
+});
