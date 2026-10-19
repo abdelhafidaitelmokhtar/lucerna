@@ -23,7 +23,7 @@ function loadSession(session){
 test("exam: timer shown and formatted", async function(){
   await openFixturePreview();
   setInput("#opt-exam", true);
-  await app.waitFor(function(){ return app.$("#opt-hours"); });
+  await app.waitFor(function(){ return app.$("#opt-duration"); });
   app.click('[data-action="begin-imported"]');
   var t = await app.waitFor(function(){ return app.$("#exam-timer"); });
   assert.match(t.textContent.trim(), /^1:(29|30):\d\d$/);

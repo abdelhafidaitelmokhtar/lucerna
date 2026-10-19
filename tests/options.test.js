@@ -25,22 +25,21 @@ test("options: defaults", async function(){
   assert.equal(app.$("#opt-shuffle-q").checked, false);
   assert.equal(app.$("#opt-shuffle-c").checked, false);
   assert.equal(app.$("#opt-exam").checked, false);
-  assert.equal(app.$("#opt-hours"), null, "duration hidden without exam");
+  assert.equal(app.$("#opt-duration"), null, "duration hidden without exam");
   setInput("#opt-exam", true);
-  await app.waitFor(function(){ return app.$("#opt-hours"); });
-  assert.equal(app.$("#opt-hours").value, "1");
-  assert.equal(app.$("#opt-minutes").value, "30");
+  await app.waitFor(function(){ return app.$("#opt-duration"); });
+  assert.equal(app.$("#opt-duration").value, "90");
+  assert.equal(app.$("#opt-hours"), null, "no hours field");
 });
 
 test("options: invalid duration blocks start", async function(){
   await openFixturePreview();
   setInput("#opt-exam", true);
-  await app.waitFor(function(){ return app.$("#opt-hours"); });
-  setInput("#opt-hours", "0");
-  setInput("#opt-minutes", "0");
+  await app.waitFor(function(){ return app.$("#opt-duration"); });
+  setInput("#opt-duration", "0");
   app.click('[data-action="begin-imported"]');
   var err = await app.waitFor(function(){ return app.$("#launch-error"); });
-  assert.match(err.textContent, /entre 1 minute et 10 heures/);
+  assert.match(err.textContent, /entre 1 et 600 minutes/);
   assert.equal(app.$("#question-card"), null);
   assert.equal(app.win.localStorage.getItem("lucerna:quiz-session:v2"), null);
 });
@@ -84,11 +83,11 @@ test("options: retake keeps options", async function(){
 test("options: letters in duration block start", async function(){
   await openFixturePreview();
   setInput("#opt-exam", true);
-  await app.waitFor(function(){ return app.$("#opt-hours"); });
-  setInput("#opt-hours", "abc");
+  await app.waitFor(function(){ return app.$("#opt-duration"); });
+  setInput("#opt-duration", "abc");
   app.click('[data-action="begin-imported"]');
   var err = await app.waitFor(function(){ return app.$("#launch-error"); });
-  assert.match(err.textContent, /nombres entiers/);
+  assert.match(err.textContent, /nombre entier/);
   assert.equal(app.win.localStorage.getItem("lucerna:quiz-session:v2"), null);
 });
 

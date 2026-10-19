@@ -198,16 +198,14 @@ window.LucernaCore = (function(){
     return selected.slice().sort().join("|") === correctAnswers.slice().sort().join("|");
   }
 
-  function parseDuration(hours, minutes){
-    var parts = [hours, minutes].map(function(v){ return String(v === undefined || v === null ? "" : v).trim(); });
-    for(var i = 0; i < parts.length; i++){
-      if(parts[i] !== "" && !/^\d+$/.test(parts[i])){
-        return { ok: false, error: "Durée invalide : utilisez des nombres entiers." };
-      }
+  function parseDuration(minutes){
+    var raw = String(minutes === undefined || minutes === null ? "" : minutes).trim();
+    if(raw !== "" && !/^\d+$/.test(raw)){
+      return { ok: false, error: "Durée invalide : utilisez un nombre entier de minutes." };
     }
-    var total = (parseInt(parts[0] || "0", 10) * 60) + parseInt(parts[1] || "0", 10);
+    var total = parseInt(raw || "0", 10);
     if(total < 1 || total > 600){
-      return { ok: false, error: "La durée doit être comprise entre 1 minute et 10 heures." };
+      return { ok: false, error: "La durée doit être comprise entre 1 et 600 minutes." };
     }
     return { ok: true, minutes: total };
   }
@@ -267,7 +265,7 @@ window.LucernaCore = (function(){
   var HISTORY_KEY = "lucerna:history:v1";
   var HISTORY_MAX = 500;
   function defaultOptions(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, durationMin:90 }; }
-  function defaultLaunch(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, hours:"1", minutes:"30" }; }
+  function defaultLaunch(){ return { shuffleQuestions:false, shuffleChoices:false, exam:false, minutes:"90" }; }
 
   var state = {
     screen: "home",           // home | quiz | review | results
@@ -668,7 +666,7 @@ window.LucernaCore = (function(){
   function beginFromPreview(){
     var l = state.launch, durationMin = 90;
     if(l.exam){
-      var d = Core.parseDuration(l.hours, l.minutes);
+      var d = Core.parseDuration(l.minutes);
       if(!d.ok){ state.launchError = d.error; render(); return; }
       durationMin = d.minutes;
     }
@@ -795,8 +793,7 @@ window.LucernaCore = (function(){
     }
     var duration = l.exam
       ? '<div class="opt-duration">' +
-          '<label>Durée <input type="text" id="opt-hours" data-launch="hours" inputmode="numeric" maxlength="2" autocomplete="off" value="' + esc(l.hours) + '" aria-label="Heures"> h</label>' +
-          '<label><input type="text" id="opt-minutes" data-launch="minutes" inputmode="numeric" maxlength="3" autocomplete="off" value="' + esc(l.minutes) + '" aria-label="Minutes"> min</label>' +
+          '<label>Durée <input type="text" id="opt-duration" data-launch="minutes" inputmode="numeric" maxlength="3" autocomplete="off" value="' + esc(l.minutes) + '" aria-label="Durée en minutes"> min</label>' +
         '</div>'
       : '';
     var err = state.launchError

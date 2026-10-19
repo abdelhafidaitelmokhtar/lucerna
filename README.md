@@ -52,7 +52,7 @@ Aucune installation, aucun backend, aucune dépendance à builder : tout tient d
 - **Import drag & drop** ou bouton classique, avec validation stricte du JSON et messages d'erreur explicites.
 - **Aperçu avant lancement** : titre, description, nombre de questions, options de lancement.
 - **Mélange des questions et/ou des choix de réponse** avant de commencer.
-- **Mode examen** avec minuteur global (1 h 30 par défaut, durée personnalisable) et soumission automatique.
+- **Mode examen** avec minuteur global (90 minutes par défaut, durée personnalisable) et soumission automatique.
 - **Questions à choix unique ou multiple**, détectées automatiquement selon le nombre de bonnes réponses (`correctAnswers`).
 - **Navigation libre** : boutons Précédent / Suivant, grille de numéros cliquables, raccourcis clavier (flèches gauche/droite).
 - **États visuels distincts** pour chaque question (répondue, non répondue, marquée, en cours) — combinant couleur, icônes et formes pour rester accessible sans dépendre uniquement de la couleur.
@@ -105,7 +105,7 @@ Sur l'aperçu, avant « Commencer le QCM » :
 
 - **Mélanger les questions** — l'ordre est tiré une fois au lancement et conservé en cas de rechargement.
 - **Mélanger les choix de réponse** — les lettres (A, B, C…) suivent l'ordre affiché. Comme les explications des fichiers citent les lettres d'origine, la correction rappelle la lettre d'origine quand elle diffère, par exemple « B (D dans l'explication) ».
-- **Mode examen avec minuteur** — durée préremplie à 1 h 30, modifiable (entre 1 minute et 10 heures).
+- **Mode examen avec minuteur** — durée en minutes, préremplie à 90, modifiable (entre 1 et 600 minutes).
 
 « Recommencer ce QCM » réutilise les mêmes options, avec un nouveau tirage.
 

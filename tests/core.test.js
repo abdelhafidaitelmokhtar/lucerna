@@ -46,14 +46,16 @@ test("core: isCorrect", async function(){
 
 test("core: parseDuration", async function(){
   var C = await core();
-  assert.deepEqual(C.parseDuration("1", "30"), { ok: true, minutes: 90 });
-  assert.deepEqual(C.parseDuration("", "45"), { ok: true, minutes: 45 });
-  assert.deepEqual(C.parseDuration("10", "0"), { ok: true, minutes: 600 });
-  assert.equal(C.parseDuration("0", "0").ok, false);
-  assert.match(C.parseDuration("10", "1").error, /entre 1 minute et 10 heures/);
-  assert.match(C.parseDuration("1.5", "0").error, /nombres entiers/);
-  assert.equal(C.parseDuration("abc", "").ok, false);
-  assert.equal(C.parseDuration("-1", "90").ok, false);
+  assert.deepEqual(C.parseDuration("90"), { ok: true, minutes: 90 });
+  assert.deepEqual(C.parseDuration(" 45 "), { ok: true, minutes: 45 });
+  assert.deepEqual(C.parseDuration(1), { ok: true, minutes: 1 });
+  assert.deepEqual(C.parseDuration("600"), { ok: true, minutes: 600 });
+  assert.equal(C.parseDuration("0").ok, false);
+  assert.equal(C.parseDuration("").ok, false);
+  assert.match(C.parseDuration("601").error, /entre 1 et 600 minutes/);
+  assert.match(C.parseDuration("1.5").error, /nombre entier/);
+  assert.equal(C.parseDuration("abc").ok, false);
+  assert.equal(C.parseDuration("-1").ok, false);
 });
 
 test("core: formatClock", async function(){
